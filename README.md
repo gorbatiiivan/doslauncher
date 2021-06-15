@@ -1,4 +1,4 @@
-# doslauncher for eXoDOS V5.0
+# doslauncher
 
 doslauncher is a small, portable with a minimal GUI launcher for eXoDOS V5.0.
 
