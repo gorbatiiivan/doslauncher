@@ -43,6 +43,7 @@ type
     procedure Default1Click(Sender: TObject);
     procedure AlternativeLauncher1Click(Sender: TObject);
     procedure Open1Click(Sender: TObject);
+    procedure MainListClick(Sender: TObject);
   private
     { Private declarations }
     FConfig: TMemIniFile;
@@ -148,6 +149,27 @@ begin
   Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))+s+'eXoDOS'+s+'!dos';
 end;
 
+function GetDosCurrentDir: String;
+begin
+with MainForm do
+ begin
+  if MainList.ItemIndex <> -1 then
+  Result := FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])];
+ end;
+end;
+
+function SetCaption: String;
+begin
+with MainForm do
+ begin
+  if MainList.Items.Count <> -1 then
+   begin
+    Result :='Selected DOS Game : ['+IntToStr(MainList.ItemIndex+1)+' from '+IntToStr(MainList.Items.Count)+']';
+   end else
+    Result := 'Selected DOS Game : ['+IntToStr(0)+' from '+IntToStr(MainList.Items.Count)+']';
+ end;
+end;
+
 procedure AddGamesToList;
 begin
 with MainForm do
@@ -159,8 +181,8 @@ with MainForm do
     FilePath.Clear;
     MainList.Items.Clear;
     FindFilePattern(GetDosDir, '*.bat');
-    MainForm.Caption := 'MS-DOS Games: ' + IntToStr(MainList.Items.Count);
     if MainList.Items.Count <> -1 then MainList.ItemIndex := 0;
+    MainForm.Caption := SetCaption;
    end;
  end;
 end;
@@ -276,8 +298,8 @@ procedure TMainForm.Open1Click(Sender: TObject);
 begin
 if MainList.ItemIndex <> -1 then
  begin
-  SetCurrentDir(ExtractFilePath(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])]));
-  RunApplication(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])], '');
+  SetCurrentDir(ExtractFilePath(GetDosCurrentDir));
+  RunApplication(GetDosCurrentDir, '');
  end;
 end;
 
@@ -285,8 +307,8 @@ procedure TMainForm.Install1Click(Sender: TObject);
 begin
 if MainList.ItemIndex <> -1 then
  begin
-   SetCurrentDir(ExtractFilePath(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])]));
-   RunApplication(ExtractFilePath(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])]) + 'install.bat', '');
+   SetCurrentDir(ExtractFilePath(GetDosCurrentDir));
+   RunApplication(ExtractFilePath(GetDosCurrentDir) + 'install.bat', '');
  end;
 end;
 
@@ -297,14 +319,14 @@ begin
 if MainList.ItemIndex <> -1 then
  begin
   s := IncludeTrailingPathDelimiter(s);
-  if FileExists(ExtractFilePath(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])])+s+'Extras'+s+'Alternate Launcher.bat') then
+  if FileExists(ExtractFilePath(GetDosCurrentDir)+s+'Extras'+s+'Alternate Launcher.bat') then
    begin
-    SetCurrentDir(ExtractFilePath(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])])+s+'Extras');
-    RunApplication(ExtractFilePath(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])])+s+'Extras'+s+'Alternate Launcher.bat', '');
+    SetCurrentDir(ExtractFilePath(GetDosCurrentDir)+s+'Extras');
+    RunApplication(ExtractFilePath(GetDosCurrentDir)+s+'Extras'+s+'Alternate Launcher.bat', '');
    end else
   begin
-    SetCurrentDir(ExtractFilePath(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])]));
-    RunApplication(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])], '');
+    SetCurrentDir(ExtractFilePath(GetDosCurrentDir));
+    RunApplication(GetDosCurrentDir, '');
   end;
  end;
 end;
@@ -340,14 +362,19 @@ end;
 
 //TMainList
 
+procedure TMainForm.MainListClick(Sender: TObject);
+begin
+MainForm.Caption := SetCaption;
+end;
+
 procedure TMainForm.MainListDblClick(Sender: TObject);
 begin
 if MainList.ItemIndex <> -1 then
  begin
   if FConfig.ReadInteger('General','Run',0) = 0 then
    begin
-    SetCurrentDir(ExtractFilePath(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])]));
-    RunApplication(FilePath[FindString(FileList,MainList.Items[MainList.ItemIndex])], '');
+    SetCurrentDir(ExtractFilePath(GetDosCurrentDir));
+    RunApplication(GetDosCurrentDir, '');
    end else
   if FConfig.ReadInteger('General','Run',0) = 1 then
     AlternateLauncherClick(Sender);
@@ -358,6 +385,8 @@ procedure TMainForm.MainListMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
 with MainList do ItemIndex := ItemAtPos(Point(X, Y), True);
+
+MainForm.Caption := SetCaption;
 
 if Button = mbRight then
 if MainList.ItemIndex <> -1 then

@@ -37,6 +37,7 @@ object MainForm: TMainForm
     Sorted = True
     TabOrder = 0
     StyleElements = [seFont, seBorder]
+    OnClick = MainListClick
     OnDblClick = MainListDblClick
     OnDrawItem = MainListDrawItem
     OnKeyDown = FormKeyDown
@@ -58,13 +59,13 @@ object MainForm: TMainForm
       Caption = 'Open'
       OnClick = Open1Click
     end
-    object Install1: TMenuItem
-      Caption = 'Install'
-      OnClick = Install1Click
-    end
     object AlternateLauncher: TMenuItem
       Caption = 'Alternative Launcher'
       OnClick = AlternateLauncherClick
+    end
+    object Install1: TMenuItem
+      Caption = 'Install'
+      OnClick = Install1Click
     end
     object N2: TMenuItem
       Caption = '-'
