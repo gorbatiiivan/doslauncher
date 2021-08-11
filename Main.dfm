@@ -1,7 +1,6 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  ActiveControl = MainList
   BorderIcons = [biSystemMenu, biMinimize]
   ClientHeight = 665
   ClientWidth = 584
@@ -20,52 +19,132 @@ object MainForm: TMainForm
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
-  object MainList: TListBox
-    Left = 32
-    Top = 24
-    Width = 488
-    Height = 561
-    Style = lbOwnerDrawFixed
-    BorderStyle = bsNone
+  object PageControl: TPageControl
+    Left = 48
+    Top = 16
+    Width = 497
+    Height = 625
+    ActivePage = eXoWin3xSheet
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
-    ItemHeight = 22
     ParentFont = False
-    Sorted = True
+    Style = tsFlatButtons
     TabOrder = 0
-    StyleElements = [seFont, seBorder]
-    OnClick = MainListClick
-    OnDblClick = MainListDblClick
-    OnDrawItem = MainListDrawItem
-    OnKeyDown = FormKeyDown
-    OnMouseDown = MainListMouseDown
+    TabWidth = 80
+    OnChange = PageControlChange
+    object eXoDOSSheet: TTabSheet
+      Caption = 'DOS'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
+      object DosMainList: TListBox
+        Left = 0
+        Top = 0
+        Width = 489
+        Height = 591
+        Style = lbOwnerDrawFixed
+        Align = alClient
+        BorderStyle = bsNone
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ItemHeight = 22
+        ParentFont = False
+        Sorted = True
+        TabOrder = 0
+        StyleElements = [seFont, seBorder]
+        OnClick = DosMainListClick
+        OnDblClick = DosMainListDblClick
+        OnDrawItem = DosMainListDrawItem
+        OnKeyDown = FormKeyDown
+        OnMouseDown = DosMainListMouseDown
+      end
+    end
+    object eXoWin3xSheet: TTabSheet
+      Caption = 'Win3x'
+      ImageIndex = 1
+      object Win3xMainList: TListBox
+        Left = 0
+        Top = 0
+        Width = 489
+        Height = 591
+        Style = lbOwnerDrawFixed
+        Align = alClient
+        BorderStyle = bsNone
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ItemHeight = 22
+        ParentFont = False
+        Sorted = True
+        TabOrder = 0
+        StyleElements = [seFont, seBorder]
+        OnClick = DosMainListClick
+        OnDblClick = Win3xMainListDblClick
+        OnDrawItem = DosMainListDrawItem
+        OnKeyDown = FormKeyDown
+        OnMouseDown = DosMainListMouseDown
+      end
+    end
+    object eXoScummVMSheet: TTabSheet
+      Caption = 'ScummVM'
+      ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
+      object ScummVMMainList: TListBox
+        Left = 0
+        Top = 0
+        Width = 489
+        Height = 591
+        Style = lbOwnerDrawFixed
+        Align = alClient
+        BorderStyle = bsNone
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ItemHeight = 22
+        ParentFont = False
+        Sorted = True
+        TabOrder = 0
+        StyleElements = [seFont, seBorder]
+        OnClick = DosMainListClick
+        OnDblClick = ScummVMMainListDblClick
+        OnDrawItem = DosMainListDrawItem
+        OnKeyDown = FormKeyDown
+        OnMouseDown = DosMainListMouseDown
+      end
+    end
   end
   object ListMenu: TPopupMenu
     OnPopup = ListMenuPopup
     Left = 16
     Top = 616
-    object Run1: TMenuItem
-      Caption = 'Run'
+    object Open1: TMenuItem
+      Caption = 'Open'
       Default = True
-      OnClick = MainListDblClick
+      OnClick = Open1Click
     end
     object N1: TMenuItem
       Caption = '-'
     end
-    object Open1: TMenuItem
-      Caption = 'Open'
-      OnClick = Open1Click
-    end
-    object AlternateLauncher: TMenuItem
-      Caption = 'Alternative Launcher'
-      OnClick = AlternateLauncherClick
-    end
     object Install1: TMenuItem
       Caption = 'Install'
       OnClick = Install1Click
+    end
+    object Extras1: TMenuItem
+      Caption = 'Aditional launch'
     end
     object N2: TMenuItem
       Caption = '-'
@@ -78,27 +157,9 @@ object MainForm: TMainForm
     object N3: TMenuItem
       Caption = '-'
     end
-    object Options1: TMenuItem
-      Caption = 'Options'
-      object DefaultRun1: TMenuItem
-        Caption = 'Default run'
-        object Default1: TMenuItem
-          Caption = 'Default'
-          RadioItem = True
-          OnClick = Default1Click
-        end
-        object AlternativeLauncher1: TMenuItem
-          Caption = 'Alternative Launcher'
-          RadioItem = True
-          OnClick = AlternativeLauncher1Click
-        end
-      end
-    end
-    object N4: TMenuItem
-      Caption = '-'
-    end
     object CheckforUpdate1: TMenuItem
       Caption = 'Check for Update'
+      Enabled = False
       OnClick = CheckforUpdate1Click
     end
   end

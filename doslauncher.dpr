@@ -10,12 +10,13 @@ uses
   Vcl.Styles;
 
 {$R *.res}
+{$SETPEFLAGS IMAGE_FILE_RELOCS_STRIPPED}
 
 var
   ExtendedStyle: Longint;
 begin
   SetLastError(NO_ERROR);
-  CreateSemaphore(nil,0,1,PWideChar('MS-DOS_game_launcher_for_Exo_Collections'));
+  CreateSemaphore(nil,0,1,PWideChar('game_launcher_for_Exo_Collections'));
   if GetLastError = ERROR_ALREADY_EXISTS then Exit;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
