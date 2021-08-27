@@ -28,6 +28,8 @@ type
     Win3xMainList: TListBox;
     ScummVMMainList: TListBox;
     Extras1: TMenuItem;
+    FindEdit: TEdit;
+    cmdlabel: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure DosMainListDblClick(Sender: TObject);
@@ -47,9 +49,13 @@ type
     procedure Win3xMainListDblClick(Sender: TObject);
     procedure ScummVMMainListDblClick(Sender: TObject);
     procedure PageControlChange(Sender: TObject);
+    procedure FindEditChange(Sender: TObject);
+    procedure FindEditKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure FindEditContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
   private
     { Private declarations }
-    FormActivated: Boolean;
     FConfig: TMemIniFile;
     function GetFConfig: TMemIniFile;
     procedure RegIni(Write: Boolean; FirstRun: Boolean);
@@ -67,6 +73,7 @@ var
   ScummVMList: TStringList;
   ScummVMPath: TStringList;
   ExtrassList: TStringList;
+  DOSIndex, Win3xIndex, ScummVMIndex: String;
 
 implementation
 
@@ -93,6 +100,16 @@ var
 begin
   i := 0;
   while (i < List.Count) and (List[i] <> s) do
+    inc(i);
+  Result := i;
+end;
+
+function FindListBoxString(List: TListBox; s: string): Integer;
+var
+  i: Integer;
+begin
+  i := 0;
+  while (i < List.Items.Count) and (List.Items[i] <> s) do
     inc(i);
   Result := i;
 end;
@@ -129,7 +146,6 @@ begin
           begin
             DosList.Add(ChangeFileExt(SR.Name,''));
             DosPath.Add(Root + SR.Name);
-            MainForm.DosMainList.Items.Add(ChangeFileExt(SR.Name,''));
           end;
          end;
       end;
@@ -161,7 +177,6 @@ begin
           begin
             Win3xList.Add(ChangeFileExt(SR.Name,''));
             Win3xPath.Add(Root + SR.Name);
-            MainForm.Win3xMainList.Items.Add(ChangeFileExt(SR.Name,''));
           end;
          end;
       end;
@@ -193,7 +208,6 @@ begin
           begin
             ScummVMList.Add(ChangeFileExt(SR.Name,''));
             ScummVMPath.Add(Root + SR.Name);
-            MainForm.ScummVMMainList.Items.Add(ChangeFileExt(SR.Name,''));
           end;
          end;
       end;
@@ -250,6 +264,19 @@ begin
     WaitForInputIdle(_SEInfo.hProcess, 3000);
     Result := GetProcessID(_SEInfo.hProcess);
   end;
+end;
+
+procedure FindListIndex(GameName: String; List: TListBox; BackupList: TStringList);
+var
+  i: Integer;
+begin
+ List.Items.BeginUpdate;
+ List.Items.Assign(BackupList);
+ if GameName <> '' then
+ for i := List.Count - 1 downto 0
+  do if Pos(AnsiUpperCase(GameName), AnsiUpperCase(List.Items.Strings[i])) = 0
+        then List.Items.Delete(i);
+ List.Items.EndUpdate;
 end;
 
 function ExistsDosDir: Boolean;
@@ -364,6 +391,9 @@ with MainForm do
     MainForm.Caption := 'Please wait...';
     PageControl.Enabled := False;
     PageControl.ActivePage := nil;
+    FindEdit.Text := '';
+    FindEdit.Enabled := False;
+    cmdlabel.Caption := 'c:\eXo>find ';
 
     if ExistsDosDir then
     begin
@@ -371,7 +401,6 @@ with MainForm do
     DosPath.Clear;
     DosMainList.Items.Clear;
     FindFileDosPattern(GetDosDir, '*.bat');
-    if DosMainList.Items.Count <> -1 then DosMainList.ItemIndex := 0;
     end;
 
     if ExistsWin3xDir then
@@ -380,7 +409,6 @@ with MainForm do
     Win3xPath.Clear;
     Win3xMainList.Items.Clear;
     FindFileWin3xPattern(GetWin3xDir, '*.bat');
-    if Win3xMainList.Items.Count <> -1 then Win3xMainList.ItemIndex := 0;
     end;
 
     if ExistsScummVMDir then
@@ -389,15 +417,15 @@ with MainForm do
     ScummVMPath.Clear;
     ScummVMMainList.Items.Clear;
     FindFileScummVMPattern(GetScummVMDir, '*.bat');
-    if ScummVMMainList.Items.Count <> -1 then ScummVMMainList.ItemIndex := 0;
     end;
 
     if not (ExistsDosDir) and not(ExistsWin3xDir) and not (ExistsScummVMDir) then
-    MainForm.Caption := 'Sorry, not found any eXo Collection folder' else
-    MainForm.Caption := 'The scan is complete, please select your favorite tab.';
+     MainForm.Caption := 'Sorry, not found any eXo Collection folder'
+    else
+     MainForm.Caption := 'The scan is complete, please select your favorite tab.';
 
-    Sleep (1000);
-    PageControl.Enabled := True;
+     //Sleep (1000);
+     PageControl.Enabled := True;
    end;
  end;
 end;
@@ -509,14 +537,27 @@ eXoScummVMSheet.TabVisible := ExistsScummVMDir;
 
 RegIni(False, False);
 
-if LoadResourceFontByID(2, 'MYFONT1') then
+if LoadResourceFontByID(1, 'MYFONT') then
  begin
    MainForm.ParentFont := False;
    MainForm.Font.Size := 8;
-   MainForm.Font.Name := 'Modern DOS 8x8';
- end;
-if LoadResourceFontByID(1, 'MYFONT') then
- begin
+   MainForm.Font.Name := 'Modern DOS 8x14';
+
+   cmdlabel.ParentFont := False;
+   cmdlabel.Font.Size := 12;
+   cmdlabel.Font.Name := 'Modern DOS 8x14';
+   cmdlabel.Font.Color := clBlack;
+   cmdlabel.Color := clWhite;
+   cmdlabel.Caption := 'c:\eXo>find ';
+
+   FindEdit.ParentFont := False;
+   FindEdit.Font.Size := 12;
+   FindEdit.Font.Name := 'Modern DOS 8x14';
+   FindEdit.ParentColor := True;
+   FindEdit.Color := clBlack;
+   FindEdit.Font.Color := clWhite;
+   FindEdit.BorderStyle := bsNone;
+
    DosMainList.ParentFont := False;
    DosMainList.Font.Size := 12;
    DosMainList.Font.Name := 'Modern DOS 8x14';
@@ -542,6 +583,7 @@ if LoadResourceFontByID(1, 'MYFONT') then
    PageControl.Font.Size := 12;
    PageControl.Font.Name := 'Modern DOS 8x14';
    PageControl.ActivePage := nil;
+   PageControl.Enabled := False;
  end;
 
 DosList := TStringList.Create;
@@ -589,29 +631,37 @@ Canvas.Rectangle (0, 0, ClientWidth, ClientHeight);
 Canvas.Pen.Color := $00FFFF55;
 Canvas.Pen.Style := psSolid;
 Canvas.Pen.Width := 1;
-Canvas.Rectangle (4, 4, ClientWidth -4, ClientHeight -4);
+Canvas.Rectangle (4, 4, ClientWidth -4, ClientHeight -28);
 Canvas.Pen.Color := $00FFFF55;
 Canvas.Pen.Style := psSolid;
 Canvas.Pen.Width := 1;
-Canvas.Rectangle (6, 6, ClientWidth -6, ClientHeight -6);
+Canvas.Rectangle (6, 6, ClientWidth -6, ClientHeight -30);
+Canvas.Pen.Color := clBlack;
+Canvas.Pen.Style := psSolid;
+Canvas.Pen.Width := 24;
+Canvas.Rectangle (0, ClientHeight -16, ClientWidth, ClientHeight);
 end;
 
 procedure TMainForm.FormResize(Sender: TObject);
 begin
 Repaint;
-PageControl.SetBounds(10,10,ClientWidth -20, ClientHeight -20);
+PageControl.SetBounds(10,10,ClientWidth -20, ClientHeight -44);
+cmdlabel.SetBounds(8,ClientHeight -20, cmdlabel.Width, cmdlabel.Height);
+FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18);
 end;
 
 //TListMenu
 
 procedure TMainForm.ListMenuPopup(Sender: TObject);
 begin
-if (eXoDOSSheet.Visible) and (DosMainList.ItemIndex <> -1) then
-ExtrasFileAdd(Extras1);
-if (eXoWin3xSheet.Visible) and (Win3xMainList.ItemIndex <> -1) then
-ExtrasFileAdd(Extras1);
-if (eXoScummVMSheet.Visible) and (ScummVMMainList.ItemIndex <> -1) then
-ExtrasFileAdd(Extras1);
+if eXoDOSSheet.Visible then
+if DosMainList.ItemIndex <> -1 then ExtrasFileAdd(Extras1);
+
+if eXoWin3xSheet.Visible then
+if Win3xMainList.ItemIndex <> -1 then ExtrasFileAdd(Extras1);
+
+if eXoScummVMSheet.Visible then
+if ScummVMMainList.ItemIndex <> -1 then ExtrasFileAdd(Extras1);
 end;
 
 procedure TMainForm.Open1Click(Sender: TObject);
@@ -704,6 +754,9 @@ end;
 procedure TMainForm.DosMainListClick(Sender: TObject);
 begin
 MainForm.Caption := SetCaption;
+if eXoDOSSheet.Visible then DOSIndex := DosMainList.Items[DosMainList.ItemIndex];
+if eXoWin3xSheet.Visible then Win3xIndex := Win3xMainList.Items[Win3xMainList.ItemIndex];
+if eXoScummVMSheet.Visible then ScummVMIndex := ScummVMMainList.Items[ScummVMMainList.ItemIndex];
 end;
 
 procedure TMainForm.DosMainListDblClick(Sender: TObject);
@@ -773,28 +826,105 @@ with (Control as TListBox).Canvas do
 
     FillRect(Rect);
     TextOut(Rect.Left+4, Rect.Top+4, (Control as TListBox).Items[Index]);
-    if odFocused In State then begin
+    if odFocused In State then
+     begin
       Brush.Color := (Control as TListBox).Color;
       DrawFocusRect(Rect);
-    end;
+     end;
   end;
 end;
 
 procedure TMainForm.PageControlChange(Sender: TObject);
 begin
-MainForm.Caption := SetCaption;
+cmdlabel.Caption := 'c:\eXo\'+PageControl.Pages[PageControl.TabIndex].Caption + '>find ';
+FindEdit.Text := '';
+FindEdit.Enabled := True;
+FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18);
 
 if ExistsDosDir then
 if eXoDOSSheet.Visible then
-ActiveControl := DosMainList;
+ begin
+  ActiveControl := DosMainList;
+  MainForm.DosMainList.Items.Assign(DosList);
+  if DosList.Count <> -1 then
+  begin
+  if DosIndex = '' then DosMainList.ItemIndex := 0 else
+   begin
+    DosMainList.ItemIndex := FindListBoxString(DosMainList,DOSIndex);
+    SendMessage(DosMainList.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+   end;
+  end;
+ end;
 
 if ExistsWin3xDir then
 if eXoWin3xSheet.Visible then
-ActiveControl := Win3xMainList;
+ begin
+  ActiveControl := Win3xMainList;
+  MainForm.Win3xMainList.Items.Assign(Win3xList);
+  if Win3xList.Count <> -1 then
+  begin
+  if Win3xIndex = '' then Win3xMainList.ItemIndex := 0 else
+   begin
+    Win3xMainList.ItemIndex := FindListBoxString(Win3xMainList,Win3xIndex);
+    SendMessage(Win3xMainList.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+   end;
+  end;
+ end;
 
 if ExistsScummVMDir then
 if eXoScummVMSheet.Visible then
-ActiveControl := ScummVMMainList;
+ begin
+  ActiveControl := ScummVMMainList;
+  MainForm.ScummVMMainList.Items.Assign(ScummVMList);
+  if ScummVMList.Count <> -1 then
+  begin
+  if ScummVMIndex = '' then ScummVMMainList.ItemIndex := 0 else
+   begin
+    ScummVMMainList.ItemIndex := FindListBoxString(ScummVMMainList,ScummVMIndex);
+    SendMessage(ScummVMMainList.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+   end;
+  end;
+ end;
+
+MainForm.Caption := SetCaption;
+end;
+
+procedure TMainForm.FindEditChange(Sender: TObject);
+begin
+if eXoDOSSheet.Visible then
+ FindListIndex(FindEdit.Text, DosMainList, DosList);
+if eXoWin3xSheet.Visible then
+ FindListIndex(FindEdit.Text, Win3xMainList, Win3xList);
+if eXoScummVMSheet.Visible then
+ FindListIndex(FindEdit.Text, ScummVMMainList, ScummVMList);
+
+MainForm.Caption := SetCaption;
+end;
+
+procedure TMainForm.FindEditContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+begin
+Handled := True;
+end;
+
+procedure TMainForm.FindEditKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  Mgs: TMsg;
+begin
+if Key = VK_F5 then AddGamesToList;
+if Key = VK_RETURN then
+ begin
+  PeekMessage(Mgs, 0, WM_CHAR, WM_CHAR, PM_REMOVE);
+  if eXoDOSSheet.Visible then DosMainListDblClick(Sender);
+  if eXoWin3xSheet.Visible then Win3xMainListDblClick(Sender);
+  if eXoScummVMSheet.Visible then ScummVMMainListDblClick(Sender);
+ end;
+if Key = VK_ESCAPE then
+  begin
+   PeekMessage(Mgs, 0, WM_CHAR, WM_CHAR, PM_REMOVE);
+   FindEdit.Text := '';
+  end;
 end;
 
 end.

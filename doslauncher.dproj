@@ -119,7 +119,7 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>doslauncher_Icon.ico</Icon_MainIcon>
-        <DCC_ExeOutput>.\$(Platform)\$(Config)\util\doslauncher</DCC_ExeOutput>
+        <DCC_ExeOutput>.\$(Platform)\$(Config)\eXo\util\doslauncher</DCC_ExeOutput>
         <UWP_DelphiLogo44>44x44.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>150x150.png</UWP_DelphiLogo150>
     </PropertyGroup>
@@ -143,10 +143,6 @@
         <RcItem Include="modern_dos\ModernDOS8x14.ttf">
             <ResourceType>MYFONT</ResourceType>
             <ResourceId>1</ResourceId>
-        </RcItem>
-        <RcItem Include="modern_dos\ModernDOS8x8.ttf">
-            <ResourceType>MYFONT1</ResourceType>
-            <ResourceId>2</ResourceId>
         </RcItem>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
@@ -176,15 +172,9 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
-                <DeployFile LocalName="Win32\Release\util\doslauncher\doslauncher.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="Win32\Release\eXo\util\doslauncher\doslauncher.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>doslauncher.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="modern_dos\ModernDOS8x8.ttf" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

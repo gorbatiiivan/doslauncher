@@ -19,12 +19,20 @@ object MainForm: TMainForm
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
+  object cmdlabel: TLabel
+    Left = 56
+    Top = 640
+    Width = 25
+    Height = 13
+    Caption = 'find \'
+    Transparent = True
+  end
   object PageControl: TPageControl
     Left = 48
     Top = 16
     Width = 497
     Height = 625
-    ActivePage = eXoWin3xSheet
+    ActivePage = eXoDOSSheet
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -37,10 +45,6 @@ object MainForm: TMainForm
     OnChange = PageControlChange
     object eXoDOSSheet: TTabSheet
       Caption = 'DOS'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object DosMainList: TListBox
         Left = 0
         Top = 0
@@ -97,10 +101,6 @@ object MainForm: TMainForm
     object eXoScummVMSheet: TTabSheet
       Caption = 'ScummVM'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ScummVMMainList: TListBox
         Left = 0
         Top = 0
@@ -126,6 +126,21 @@ object MainForm: TMainForm
         OnMouseDown = DosMainListMouseDown
       end
     end
+  end
+  object FindEdit: TEdit
+    Left = 140
+    Top = 636
+    Width = 121
+    Height = 21
+    AutoSize = False
+    BevelInner = bvNone
+    BevelOuter = bvNone
+    Color = clBlack
+    TabOrder = 1
+    StyleElements = []
+    OnChange = FindEditChange
+    OnContextPopup = FindEditContextPopup
+    OnKeyDown = FindEditKeyDown
   end
   object ListMenu: TPopupMenu
     OnPopup = ListMenuPopup
