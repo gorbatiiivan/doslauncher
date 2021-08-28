@@ -463,10 +463,10 @@ with MainForm do
   end;
 
   FindExtrasFile(MainDir, '*.bat');
-  if not (ExtrassList.Count = -1) then
+  if ExtrassList.Count <> -1 then
   for i := 0 to ExtrassList.Count-1 do
    begin
-    MenuItem := TMenuItem.Create(MenuItem);
+    MenuItem := TMenuItem.Create(AMenu);
     MenuItem.Caption := ExtractFileName(ChangeFileExt(ExtrassList[i],''));
     MenuItem.OnClick := ExtrasMenuClick;
     AMenu.Add(MenuItem);
@@ -754,9 +754,12 @@ end;
 procedure TMainForm.DosMainListClick(Sender: TObject);
 begin
 MainForm.Caption := SetCaption;
-if eXoDOSSheet.Visible then DOSIndex := DosMainList.Items[DosMainList.ItemIndex];
-if eXoWin3xSheet.Visible then Win3xIndex := Win3xMainList.Items[Win3xMainList.ItemIndex];
-if eXoScummVMSheet.Visible then ScummVMIndex := ScummVMMainList.Items[ScummVMMainList.ItemIndex];
+if eXoDOSSheet.Visible then
+if DosMainList.ItemIndex <> -1 then DOSIndex := DosMainList.Items[DosMainList.ItemIndex];
+if eXoWin3xSheet.Visible then
+if Win3xMainList.ItemIndex <> -1 then Win3xIndex := Win3xMainList.Items[Win3xMainList.ItemIndex];
+if eXoScummVMSheet.Visible then
+if ScummVMMainList.ItemIndex <> -1 then ScummVMIndex := ScummVMMainList.Items[ScummVMMainList.ItemIndex];
 end;
 
 procedure TMainForm.DosMainListDblClick(Sender: TObject);
