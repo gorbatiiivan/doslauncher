@@ -5,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls,
-  Masks, ShellAPI, IniFiles, Vcl.ComCtrls, Vcl.Imaging.jpeg, Vcl.ExtCtrls;
+  Masks, ShellAPI, IniFiles, Vcl.ComCtrls, Vcl.Imaging.jpeg, Vcl.ExtCtrls, IOUtils,
+  Types;
 
 const
   TIMER1 = 1;
@@ -30,6 +31,20 @@ type
     Extras1: TMenuItem;
     FindEdit: TEdit;
     cmdlabel: TLabel;
+    Manual1: TMenuItem;
+    N4: TMenuItem;
+    N5: TMenuItem;
+    Options1: TMenuItem;
+    N6: TMenuItem;
+    SystemTray1: TMenuItem;
+    none1: TMenuItem;
+    Minimize1: TMenuItem;
+    Close1: TMenuItem;
+    TrayIcon: TTrayIcon;
+    TrayMenu: TPopupMenu;
+    Show1: TMenuItem;
+    N7: TMenuItem;
+    Exit1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure DosMainListDblClick(Sender: TObject);
@@ -54,11 +69,20 @@ type
       Shift: TShiftState);
     procedure FindEditContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
+    procedure Manual1Click(Sender: TObject);
+    procedure TrayIconClick(Sender: TObject);
+    procedure Exit1Click(Sender: TObject);
+    procedure none1Click(Sender: TObject);
+    procedure Minimize1Click(Sender: TObject);
+    procedure Close1Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     FConfig: TMemIniFile;
     function GetFConfig: TMemIniFile;
     procedure RegIni(Write: Boolean; FirstRun: Boolean);
+    procedure OnMinimize(Sender: TObject);
+    procedure OnRestore(Sender: TObject);
     procedure ExtrasMenuClick(Sender: TObject);
   public
     { Public declarations }
@@ -66,6 +90,8 @@ type
 
 var
   MainForm: TMainForm;
+  OnTray: Integer;
+  AClose: Boolean = false;
   DosList: TStringList;
   DosPath: TStringList;
   Win3xList: TStringList;
@@ -124,7 +150,7 @@ begin
   Result := i;
 end;
 
-procedure FindFileDosPattern(root: String; pattern: String);
+procedure FindFilePattern(root: String; pattern: String; NameList: TStringList; ListPath: TStringList);
 var
   SR: TSearchRec;
 begin
@@ -137,77 +163,15 @@ begin
       begin
        if (Sr.Name <> 'Extras') then
         if (SR.Name <> '.') and (Sr.Name <> '..') then
-          FindFileDosPattern(root + SR.Name, pattern);
+          FindFilePattern(root + SR.Name, pattern, NameList, ListPath);
       end else
       begin
         if MatchesMask(SR.Name, pattern) then
          begin
          if (SR.Name <> 'install.bat') then
           begin
-            DosList.Add(ChangeFileExt(SR.Name,''));
-            DosPath.Add(Root + SR.Name);
-          end;
-         end;
-      end;
-    until FindNext(SR) <> 0;
-  finally
-    FindClose(SR);
-  end;
-end;
-
-procedure FindFileWin3xPattern(root: String; pattern: String);
-var
-  SR: TSearchRec;
-begin
-  root := IncludeTrailingPathDelimiter(root);
-  if FindFirst(root + '*.*', faAnyFile, SR) = 0 then
-  try
-    repeat
-      Application.ProcessMessages;
-      if (SR.Attr and faDirectory) <> 0 then
-      begin
-       if (Sr.Name <> 'Extras') then
-        if (SR.Name <> '.') and (Sr.Name <> '..') then
-          FindFileWin3xPattern(root + SR.Name, pattern);
-      end else
-      begin
-        if MatchesMask(SR.Name, pattern) then
-         begin
-         if (SR.Name <> 'install.bat') then
-          begin
-            Win3xList.Add(ChangeFileExt(SR.Name,''));
-            Win3xPath.Add(Root + SR.Name);
-          end;
-         end;
-      end;
-    until FindNext(SR) <> 0;
-  finally
-    FindClose(SR);
-  end;
-end;
-
-procedure FindFileScummVMPattern(root: String; pattern: String);
-var
-  SR: TSearchRec;
-begin
-  root := IncludeTrailingPathDelimiter(root);
-  if FindFirst(root + '*.*', faAnyFile, SR) = 0 then
-  try
-    repeat
-      Application.ProcessMessages;
-      if (SR.Attr and faDirectory) <> 0 then
-      begin
-       if (Sr.Name <> 'Extras') then
-        if (SR.Name <> '.') and (Sr.Name <> '..') then
-          FindFileScummVMPattern(root + SR.Name, pattern);
-      end else
-      begin
-        if MatchesMask(SR.Name, pattern) then
-         begin
-         if (SR.Name <> 'install.bat') then
-          begin
-            ScummVMList.Add(ChangeFileExt(SR.Name,''));
-            ScummVMPath.Add(Root + SR.Name);
+            NameList.Add(ChangeFileExt(SR.Name,''));
+            ListPath.Add(Root + SR.Name);
           end;
          end;
       end;
@@ -279,49 +243,34 @@ begin
  List.Items.EndUpdate;
 end;
 
-function ExistsDosDir: Boolean;
+function ExistsGameDir(Name: String): Boolean;
 begin
   SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+'eXoDOS');
+  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+Name);
 end;
 
-function ExistsWin3xDir: Boolean;
+function ExistsDOSManualDir: Boolean;
 begin
   SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+'eXoWin3x');
+  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))))+'Manuals\MS-DOS');
 end;
 
-function ExistsScummVMDir: Boolean;
-begin
-  SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+'eXoScummVM');
-end;
-
-function GetDosDir: String;
+function GetExecDir: String;
 var
   s: String;
 begin
   s := IncludeTrailingPathDelimiter(s);
   SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))+s+'eXoDOS'+s+'!dos';
+  Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))+s;
 end;
 
-function GetWin3xDir: String;
+function GetManualDir: String;
 var
   s: String;
 begin
   s := IncludeTrailingPathDelimiter(s);
   SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))+s+'eXoWin3x'+s+'!win3x';
-end;
-
-function GetScummVMDir: String;
-var
-  s: String;
-begin
-  s := IncludeTrailingPathDelimiter(s);
-  SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))+s+'eXoScummVM'+s+'!ScummVM';
+  Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+s+'Manuals'+s;
 end;
 
 function GetDosCurrentDir: String;
@@ -389,40 +338,46 @@ with MainForm do
   if MainForm.Caption <> 'Please wait...' then
    begin
     MainForm.Caption := 'Please wait...';
+    TrayIcon.Hint := MainForm.Caption;
     PageControl.Enabled := False;
     PageControl.ActivePage := nil;
     FindEdit.Text := '';
     FindEdit.Enabled := False;
     cmdlabel.Caption := 'c:\eXo>find ';
 
-    if ExistsDosDir then
+    if ExistsGameDir('eXoDOS') then
     begin
     DosList.Clear;
     DosPath.Clear;
     DosMainList.Items.Clear;
-    FindFileDosPattern(GetDosDir, '*.bat');
+    FindFilePattern(GetExecDir+'eXoDOS\!dos', '*.bat', DosList, DosPath);
     end;
 
-    if ExistsWin3xDir then
+    if ExistsGameDir('eXoWin3x') then
     begin
     Win3xList.Clear;
     Win3xPath.Clear;
     Win3xMainList.Items.Clear;
-    FindFileWin3xPattern(GetWin3xDir, '*.bat');
+    FindFilePattern(GetExecDir+'eXoWin3x\!win3x', '*.bat', Win3xList, Win3xPath);
     end;
 
-    if ExistsScummVMDir then
+    if ExistsGameDir('eXoScummVM') then
     begin
     ScummVMList.Clear;
     ScummVMPath.Clear;
     ScummVMMainList.Items.Clear;
-    FindFileScummVMPattern(GetScummVMDir, '*.bat');
+    FindFilePattern(GetExecDir+'eXoScummVM\!ScummVM', '*.bat', ScummVMList, ScummVMPath);
     end;
 
-    if not (ExistsDosDir) and not(ExistsWin3xDir) and not (ExistsScummVMDir) then
-     MainForm.Caption := 'Sorry, not found any eXo Collection folder'
-    else
+    if not (ExistsGameDir('eXoDOS')) and not(ExistsGameDir('eXoWin3x')) and not (ExistsGameDir('eXoScummVM')) then
+    begin
+     MainForm.Caption := 'Sorry, not found any eXo Collection folder';
+     TrayIcon.Hint := MainForm.Caption;
+    end else
+    begin
      MainForm.Caption := 'The scan is complete, please select your favorite tab.';
+     TrayIcon.Hint := MainForm.Caption;
+    end;
 
      //Sleep (1000);
      PageControl.Enabled := True;
@@ -489,6 +444,37 @@ begin
   Result := FConfig;
 end;
 
+procedure TrayAction(Index: Integer);
+begin
+with MainForm do
+case Index of
+  0:
+   begin
+    OnTray := 0;
+    Application.OnMinimize := nil;
+    Application.OnRestore := nil;
+    AClose := False;
+    TrayIcon.Visible := False;
+   end;
+  1:
+   begin
+    OnTray := 1;
+    Application.OnMinimize := OnMinimize;
+    Application.OnRestore := OnRestore;
+    AClose := False;
+    TrayIcon.Visible := True;
+   end;
+  2:
+   begin
+    OnTray := 2;
+    AClose := True;
+    Application.OnMinimize := nil;
+    Application.OnRestore := nil;
+    TrayIcon.Visible := True;
+   end;
+end;
+end;
+
 procedure TMainForm.RegIni(Write: Boolean; FirstRun: Boolean);
 begin
 if FirstRun = True then
@@ -501,6 +487,7 @@ if FirstRun = True then
    FConfig.WriteInteger('General','Left',Left);
    FConfig.WriteInteger('General','Width',Width);
    FConfig.WriteInteger('General','Height',Height);
+   FConfig.WriteInteger('General','OnTray',0);
    FConfig.UpdateFile;
   end;
  end;
@@ -511,6 +498,7 @@ if Write = true then
   FConfig.WriteInteger('General','Left',Left);
   FConfig.WriteInteger('General','Width',Width);
   FConfig.WriteInteger('General','Height',Height);
+  FConfig.WriteInteger('General','OnTray',OnTray);
   FConfig.UpdateFile;
  end else
  begin
@@ -518,10 +506,25 @@ if Write = true then
   Left := FConfig.ReadInteger('General','Left',Left);
   Width := FConfig.ReadInteger('General','Width',Width);
   Height := FConfig.ReadInteger('General','Height',Height);
+  OnTray := FConfig.ReadInteger('General','OnTray',0);
+  TrayAction(OnTray);
  end;
 end;
 
 //TMainForm
+
+procedure TMainForm.OnMinimize(Sender: TObject);
+begin
+ShowWindow(Handle, SW_MINIMIZE);
+ShowWindow(Handle, SW_HIDE);
+end;
+
+procedure TMainForm.OnRestore(Sender: TObject);
+begin
+ShowWindow(Handle, SW_RESTORE);
+ShowWindow(Handle, SW_SHOW);
+SetForegroundWindow(Handle);
+end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
@@ -531,9 +534,9 @@ if not FileExists(ExtractFilePath(ParamStr(0))+'config.ini') then
   RegIni(False, True);
  end else Position := poDefaultPosOnly;
 
-eXoDOSSheet.TabVisible := ExistsDosDir;
-eXoWin3xSheet.TabVisible := ExistsWin3xDir;
-eXoScummVMSheet.TabVisible := ExistsScummVMDir;
+eXoDOSSheet.TabVisible := ExistsGameDir('eXoDOS');
+eXoWin3xSheet.TabVisible := ExistsGameDir('eXoWin3x');
+eXoScummVMSheet.TabVisible := ExistsGameDir('eXoScummVM');
 
 RegIni(False, False);
 
@@ -596,6 +599,15 @@ ExtrassList := TStringList.Create;
 SetTimer(Handle,TIMER1,1000,@TimerCallBack1);
 end;
 
+procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+if AClose = True then
+ begin
+  Action := caNone;
+  onMinimize(Sender);
+ end else Action := caFree;
+end;
+
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
 RegIni(True, False);
@@ -653,15 +665,70 @@ end;
 //TListMenu
 
 procedure TMainForm.ListMenuPopup(Sender: TObject);
+var
+  Manuals: TStringDynArray;
+  ManualPath: String;
 begin
+//by default manual menu is not enabled
+Manual1.Enabled := False;
+
 if eXoDOSSheet.Visible then
-if DosMainList.ItemIndex <> -1 then ExtrasFileAdd(Extras1);
+ if DosMainList.ItemIndex <> -1 then
+ begin
+  //add Aditional to menu
+  ExtrasFileAdd(Extras1);
+  //if Exists manual in dir to menu manual is enabled
+  Manuals := TDirectory.GetFiles(GetManualDir+'MS-DOS', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  for ManualPath in Manuals do
+  Manual1.Enabled := True;
+ end;
 
 if eXoWin3xSheet.Visible then
-if Win3xMainList.ItemIndex <> -1 then ExtrasFileAdd(Extras1);
+ if Win3xMainList.ItemIndex <> -1 then
+ begin
+  //add Aditional to menu
+  ExtrasFileAdd(Extras1);
+  //if Exists manual in dir to menu manual is enabled
+  Manuals := TDirectory.GetFiles(GetManualDir+'Windows 3x', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  for ManualPath in Manuals do
+  Manual1.Enabled := True;
+ end;
 
 if eXoScummVMSheet.Visible then
-if ScummVMMainList.ItemIndex <> -1 then ExtrasFileAdd(Extras1);
+ if ScummVMMainList.ItemIndex <> -1 then
+ begin
+  //add Aditional to menu
+  ExtrasFileAdd(Extras1);
+  //if Exists manual in dir to menu manual is enabled
+  Manuals := TDirectory.GetFiles(GetManualDir, ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  for ManualPath in Manuals do
+  Manual1.Enabled := True;
+ end;
+
+//Tray options
+SystemTray1.Items[OnTray].Checked := True;
+end;
+
+procedure TMainForm.Manual1Click(Sender: TObject);
+var
+  Manuals: TStringDynArray;
+  ManualPath: String;
+begin
+if eXoDOSSheet.Visible then
+ begin
+  Manuals := TDirectory.GetFiles(GetManualDir+'MS-DOS', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  for ManualPath in Manuals do RunApplication(ManualPath,'');
+ end;
+if eXoWin3xSheet.Visible then
+ begin
+  Manuals := TDirectory.GetFiles(GetManualDir+'Windows 3x', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  for ManualPath in Manuals do RunApplication(ManualPath,'');
+ end;
+if eXoScummVMSheet.Visible then
+ begin
+  Manuals := TDirectory.GetFiles(GetManualDir, ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  for ManualPath in Manuals do RunApplication(ManualPath,'');
+ end;
 end;
 
 procedure TMainForm.Open1Click(Sender: TObject);
@@ -737,7 +804,11 @@ if DosMainList.ItemIndex <> -1 then
  end;
 end;
 
-//TMainList
+procedure TMainForm.Exit1Click(Sender: TObject);
+begin
+AClose := False;
+Close;
+end;
 
 procedure TMainForm.ExtrasMenuClick(Sender: TObject);
 var
@@ -751,9 +822,34 @@ if FileExists(CaptionReplace) then
  end;
 end;
 
+procedure TMainForm.none1Click(Sender: TObject);
+begin
+TrayAction(0);
+end;
+
+procedure TMainForm.Minimize1Click(Sender: TObject);
+begin
+TrayAction(1);
+end;
+
+procedure TMainForm.Close1Click(Sender: TObject);
+begin
+TrayAction(2);
+end;
+
+//TMainList
+
+procedure TMainForm.TrayIconClick(Sender: TObject);
+begin
+ShowWindow(Handle, SW_RESTORE);
+ShowWindow(Handle, SW_SHOW);
+SetForegroundWindow(Handle);
+end;
+
 procedure TMainForm.DosMainListClick(Sender: TObject);
 begin
 MainForm.Caption := SetCaption;
+TrayIcon.Hint := MainForm.Caption;
 if eXoDOSSheet.Visible then
 if DosMainList.ItemIndex <> -1 then DOSIndex := DosMainList.Items[DosMainList.ItemIndex];
 if eXoWin3xSheet.Visible then
@@ -795,6 +891,7 @@ begin
 with (Sender as TListBox) do ItemIndex := ItemAtPos(Point(X, Y), True);
 
 MainForm.Caption := SetCaption;
+TrayIcon.Hint := MainForm.Caption;
 
 if Button = mbRight then
 if (Sender as TListBox).ItemIndex <> -1 then
@@ -802,7 +899,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Open1.Enabled := True;
   Install1.Enabled := True;
   Extras1.Enabled := True;
-  if ExistsDosDir then
+  if ExistsGameDir('eXoDOS') then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   ListMenu.Popup(Mouse.CursorPos.X,Mouse.CursorPos.Y);
  end else
@@ -810,7 +907,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Open1.Enabled := False;
   Install1.Enabled := False;
   Extras1.Enabled := False;
-  if ExistsDosDir then
+  if ExistsGameDir('eXoDOS') then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   ListMenu.Popup(Mouse.CursorPos.X,Mouse.CursorPos.Y);
  end;
@@ -844,7 +941,7 @@ FindEdit.Text := '';
 FindEdit.Enabled := True;
 FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18);
 
-if ExistsDosDir then
+if ExistsGameDir('eXoDOS') then
 if eXoDOSSheet.Visible then
  begin
   ActiveControl := DosMainList;
@@ -859,7 +956,7 @@ if eXoDOSSheet.Visible then
   end;
  end;
 
-if ExistsWin3xDir then
+if ExistsGameDir('eXoWin3x') then
 if eXoWin3xSheet.Visible then
  begin
   ActiveControl := Win3xMainList;
@@ -874,7 +971,7 @@ if eXoWin3xSheet.Visible then
   end;
  end;
 
-if ExistsScummVMDir then
+if ExistsGameDir('eXoScummVM') then
 if eXoScummVMSheet.Visible then
  begin
   ActiveControl := ScummVMMainList;
@@ -890,6 +987,7 @@ if eXoScummVMSheet.Visible then
  end;
 
 MainForm.Caption := SetCaption;
+TrayIcon.Hint := MainForm.Caption;
 end;
 
 procedure TMainForm.FindEditChange(Sender: TObject);
@@ -902,6 +1000,7 @@ if eXoScummVMSheet.Visible then
  FindListIndex(FindEdit.Text, ScummVMMainList, ScummVMList);
 
 MainForm.Caption := SetCaption;
+TrayIcon.Hint := MainForm.Caption;
 end;
 
 procedure TMainForm.FindEditContextPopup(Sender: TObject; MousePos: TPoint;

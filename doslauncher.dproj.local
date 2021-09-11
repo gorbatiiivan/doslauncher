@@ -1,36 +1,36 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899.12.30 00:00:00.000.980,D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x14.ttf=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.886,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x14.ttf</Transaction>
     <Transaction>1899.12.30 00:00:00.000.165,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf</Transaction>
     <Transaction>1899.12.30 00:00:00.000.825,D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf=</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.913,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x14.ttf</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.920,D:\Archive\rad studio projects\doslauncher\ModernDOS8x14.ttf=</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.886,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x14.ttf</Transaction>
     <Transaction>1899.12.30 00:00:00.000.705,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x14.ttf</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.497,D:\Personal folder\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\Personal folder\Рабочий стол\doslauncher\doslauncher.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.913,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x14.ttf</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.980,D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x14.ttf=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.257,D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf=</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.045,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.497,D:\Personal folder\Рабочий стол\doslauncher\doslauncher.dproj=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.319,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS.ttf</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.352,D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.789,D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.313,D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.dfm=D:\Personal folder\Рабочий стол\doslauncher\Main.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.319,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS.ttf</Transaction>
     <Transaction>1899.12.30 00:00:00.000.466,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf</Transaction>
     <Transaction>1899.12.30 00:00:00.000.702,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.992,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.418,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.352,D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.045,=D:\Archive\rad studio projects\doslauncher\modern_dos\ModernDOS8x8.ttf</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.912,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.537,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.600,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.835,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.816,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.912,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.437,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.313,D:\Personal folder\Рабочий стол\doslauncher\Main.pas=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.313,D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas=D:\Personal folder\Рабочий стол\doslauncher\Main.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.992,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.418,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.835,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.402,=D:\Archive\rad studio projects\doslauncher\ModernDOS8x14.ttf</Transaction>
     <Transaction>1899.12.30 00:00:00.000.350,=D:\Archive\rad studio projects\doslauncher\ModernDOS8x14.ttf</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.313,D:\Personal folder\Рабочий стол\doslauncher\Main.dfm=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.920,D:\Archive\rad studio projects\doslauncher\ModernDOS8x14.ttf=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.191,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.645,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.466,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.437,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.645,=D:\Personal folder\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5"/>

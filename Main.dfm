@@ -12,6 +12,7 @@ object MainForm: TMainForm
   Font.Style = []
   OldCreateOrder = False
   ShowHint = True
+  OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
@@ -147,19 +148,29 @@ object MainForm: TMainForm
     Left = 16
     Top = 616
     object Open1: TMenuItem
-      Caption = 'Open'
+      Caption = 'Play'
       Default = True
       OnClick = Open1Click
     end
     object N1: TMenuItem
       Caption = '-'
     end
-    object Install1: TMenuItem
-      Caption = 'Install'
-      OnClick = Install1Click
-    end
     object Extras1: TMenuItem
       Caption = 'Aditional launch'
+    end
+    object N5: TMenuItem
+      Caption = '-'
+    end
+    object Manual1: TMenuItem
+      Caption = 'View Manual'
+      OnClick = Manual1Click
+    end
+    object N4: TMenuItem
+      Caption = '-'
+    end
+    object Install1: TMenuItem
+      Caption = 'Install and Uninstall'
+      OnClick = Install1Click
     end
     object N2: TMenuItem
       Caption = '-'
@@ -169,6 +180,34 @@ object MainForm: TMainForm
       ShortCut = 116
       OnClick = Refresh1Click
     end
+    object N6: TMenuItem
+      Caption = '-'
+    end
+    object Options1: TMenuItem
+      Caption = 'Options'
+      object SystemTray1: TMenuItem
+        Caption = 'System Tray'
+        object none1: TMenuItem
+          AutoCheck = True
+          Caption = 'none'
+          Checked = True
+          RadioItem = True
+          OnClick = none1Click
+        end
+        object Minimize1: TMenuItem
+          AutoCheck = True
+          Caption = 'Minimize'
+          RadioItem = True
+          OnClick = Minimize1Click
+        end
+        object Close1: TMenuItem
+          AutoCheck = True
+          Caption = 'Close'
+          RadioItem = True
+          OnClick = Close1Click
+        end
+      end
+    end
     object N3: TMenuItem
       Caption = '-'
     end
@@ -176,6 +215,28 @@ object MainForm: TMainForm
       Caption = 'Check for Update'
       Enabled = False
       OnClick = CheckforUpdate1Click
+    end
+  end
+  object TrayIcon: TTrayIcon
+    PopupMenu = TrayMenu
+    OnClick = TrayIconClick
+    Left = 20
+    Top = 534
+  end
+  object TrayMenu: TPopupMenu
+    Left = 16
+    Top = 576
+    object Show1: TMenuItem
+      Caption = 'Show'
+      Default = True
+      OnClick = TrayIconClick
+    end
+    object N7: TMenuItem
+      Caption = '-'
+    end
+    object Exit1: TMenuItem
+      Caption = 'Exit'
+      OnClick = Exit1Click
     end
   end
 end
