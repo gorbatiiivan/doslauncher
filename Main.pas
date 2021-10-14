@@ -5,8 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls,
-  Masks, ShellAPI, IniFiles, Vcl.ComCtrls, Vcl.Imaging.jpeg, Vcl.ExtCtrls, IOUtils,
-  Types;
+  IniFiles, Vcl.ComCtrls, IOUtils, Types, Vcl.ExtCtrls;
 
 const
   TIMER1 = 1;
@@ -21,13 +20,6 @@ type
     N3: TMenuItem;
     CheckforUpdate1: TMenuItem;
     Open1: TMenuItem;
-    PageControl: TPageControl;
-    eXoDOSSheet: TTabSheet;
-    eXoWin3xSheet: TTabSheet;
-    DosMainList: TListBox;
-    eXoScummVMSheet: TTabSheet;
-    Win3xMainList: TListBox;
-    ScummVMMainList: TListBox;
     Extras1: TMenuItem;
     FindEdit: TEdit;
     cmdlabel: TLabel;
@@ -45,6 +37,25 @@ type
     Show1: TMenuItem;
     N7: TMenuItem;
     Exit1: TMenuItem;
+    MainPanel: TPanel;
+    MainSplitter: TSplitter;
+    PageControl: TPageControl;
+    eXoDOSSheet: TTabSheet;
+    DosMainList: TListBox;
+    eXoWin3xSheet: TTabSheet;
+    Win3xMainList: TListBox;
+    eXoScummVMSheet: TTabSheet;
+    ScummVMMainList: TListBox;
+    PageControl2: TPageControl;
+    TabSheet1: TTabSheet;
+    ImageBox: TImage;
+    TabSheet2: TTabSheet;
+    VideoBox: TPanel;
+    Launcherstate1: TMenuItem;
+    Simple1: TMenuItem;
+    Extended1: TMenuItem;
+    N8: TMenuItem;
+    PlaybackTimer: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure DosMainListDblClick(Sender: TObject);
@@ -76,16 +87,21 @@ type
     procedure Minimize1Click(Sender: TObject);
     procedure Close1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure Simple1Click(Sender: TObject);
+    procedure PlaybackTimerTimer(Sender: TObject);
   private
     { Private declarations }
-    FConfig: TMemIniFile;
+
     function GetFConfig: TMemIniFile;
     procedure RegIni(Write: Boolean; FirstRun: Boolean);
     procedure OnMinimize(Sender: TObject);
     procedure OnRestore(Sender: TObject);
     procedure ExtrasMenuClick(Sender: TObject);
+    procedure PlayVideoOnClick;
+    procedure WMSize(var Msg: TMessage); message WM_SIZE; //for mfplayer
   public
     { Public declarations }
+    FConfig: TMemIniFile;
   end;
 
 var
@@ -100,178 +116,16 @@ var
   ScummVMPath: TStringList;
   ExtrassList: TStringList;
   DOSIndex, Win3xIndex, ScummVMIndex: String;
+  AppHandle: HWND;
+  LauncherState: Integer = 0;
 
 implementation
 
 {$R *.dfm}
 
-//functions@procedure
+uses utils, mf;
 
-function LoadResourceFontByID( ResourceID : Integer; ResType: PChar ) : Boolean;
-var
-  ResStream : TResourceStream;
-  FontsCount : DWORD;
-begin
-  ResStream := TResourceStream.CreateFromID(hInstance, ResourceID, ResType);
-  try
-    Result := (AddFontMemResourceEx(ResStream.Memory, ResStream.Size, nil, @FontsCount) <> 0);
-  finally
-    ResStream.Free;
-  end;
-end;
-
-function FindString(List: TStringList; s: string): Integer;
-var
-  i: Integer;
-begin
-  i := 0;
-  while (i < List.Count) and (List[i] <> s) do
-    inc(i);
-  Result := i;
-end;
-
-function FindListBoxString(List: TListBox; s: string): Integer;
-var
-  i: Integer;
-begin
-  i := 0;
-  while (i < List.Items.Count) and (List.Items[i] <> s) do
-    inc(i);
-  Result := i;
-end;
-
-function FindMenuString(List: TMenuItem; s: string): Integer;
-var
-  i: Integer;
-begin
-  i := 0;
-  while (i < List.Count) and (List[i].Caption <> s) do
-    inc(i);
-  Result := i;
-end;
-
-procedure FindFilePattern(root: String; pattern: String; NameList: TStringList; ListPath: TStringList);
-var
-  SR: TSearchRec;
-begin
-  root := IncludeTrailingPathDelimiter(root);
-  if FindFirst(root + '*.*', faAnyFile, SR) = 0 then
-  try
-    repeat
-      Application.ProcessMessages;
-      if (SR.Attr and faDirectory) <> 0 then
-      begin
-       if (Sr.Name <> 'Extras') then
-        if (SR.Name <> '.') and (Sr.Name <> '..') then
-          FindFilePattern(root + SR.Name, pattern, NameList, ListPath);
-      end else
-      begin
-        if MatchesMask(SR.Name, pattern) then
-         begin
-         if (SR.Name <> 'install.bat') then
-          begin
-            NameList.Add(ChangeFileExt(SR.Name,''));
-            ListPath.Add(Root + SR.Name);
-          end;
-         end;
-      end;
-    until FindNext(SR) <> 0;
-  finally
-    FindClose(SR);
-  end;
-end;
-
-procedure FindExtrasFile(root: String; pattern: String);
-var
-  SR: TSearchRec;
-begin
-  root := IncludeTrailingPathDelimiter(root);
-  if FindFirst(root + '*.*', faAnyFile, SR) = 0 then
-  try
-    repeat
-      Application.ProcessMessages;
-      if (SR.Attr and faDirectory) <> 0 then
-      begin
-        if (SR.Name <> '.') and (Sr.Name <> '..') then
-          FindExtrasFile(root + SR.Name, pattern);
-      end else
-      begin
-        if MatchesMask(SR.Name, pattern) then
-          begin
-            ExtrassList.Add(Root + SR.Name);
-          end;
-      end;
-    until FindNext(SR) <> 0;
-  finally
-    FindClose(SR);
-  end;
-end;
-
-function RunApplication(const AExecutableFile, AParameters: string;
-  const AShowOption: Integer = SW_SHOWNORMAL): Integer;
-var
-  _SEInfo: TShellExecuteInfo;
-begin
-  Result := 0;
-  if not FileExists(AExecutableFile) then
-    Exit;
-
-  FillChar(_SEInfo, SizeOf(_SEInfo), 0);
-  _SEInfo.cbSize := SizeOf(TShellExecuteInfo);
-  _SEInfo.fMask := SEE_MASK_NOCLOSEPROCESS;
-  // _SEInfo.Wnd := Application.Handle;
-  _SEInfo.lpFile := PChar(AExecutableFile);
-  _SEInfo.lpParameters := PChar(AParameters);
-  _SEInfo.nShow := AShowOption;
-  if ShellExecuteEx(@_SEInfo) then
-  begin
-    WaitForInputIdle(_SEInfo.hProcess, 3000);
-    Result := GetProcessID(_SEInfo.hProcess);
-  end;
-end;
-
-procedure FindListIndex(GameName: String; List: TListBox; BackupList: TStringList);
-var
-  i: Integer;
-begin
- List.Items.BeginUpdate;
- List.Items.Assign(BackupList);
- if GameName <> '' then
- for i := List.Count - 1 downto 0
-  do if Pos(AnsiUpperCase(GameName), AnsiUpperCase(List.Items.Strings[i])) = 0
-        then List.Items.Delete(i);
- List.Items.EndUpdate;
-end;
-
-function ExistsGameDir(Name: String): Boolean;
-begin
-  SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+Name);
-end;
-
-function ExistsDOSManualDir: Boolean;
-begin
-  SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))))+'Manuals\MS-DOS');
-end;
-
-function GetExecDir: String;
-var
-  s: String;
-begin
-  s := IncludeTrailingPathDelimiter(s);
-  SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))+s;
-end;
-
-function GetManualDir: String;
-var
-  s: String;
-begin
-  s := IncludeTrailingPathDelimiter(s);
-  SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+s+'Manuals'+s;
-end;
+//procedure/functions
 
 function GetDosCurrentDir: String;
 begin
@@ -344,6 +198,15 @@ with MainForm do
     FindEdit.Text := '';
     FindEdit.Enabled := False;
     cmdlabel.Caption := 'c:\eXo>find ';
+    if PageControl2.Visible = True then
+     begin
+      if PageControl2.ActivePageIndex = 1 then
+       begin
+        MfDestroy;
+        PlaybackTimer.Enabled := False;
+       end;
+         PageControl2.ActivePage:= nil;
+     end;
 
     if ExistsGameDir('eXoDOS') then
     begin
@@ -379,7 +242,6 @@ with MainForm do
      TrayIcon.Hint := MainForm.Caption;
     end;
 
-     //Sleep (1000);
      PageControl.Enabled := True;
    end;
  end;
@@ -417,7 +279,7 @@ with MainForm do
    MainDir := IncludeTrailingPathDelimiter(ExtractFileDir(ScummVMPath[FindString(ScummVMList,ScummVMMainList.Items[ScummVMMainList.ItemIndex])]))+'Extras';
   end;
 
-  FindExtrasFile(MainDir, '*.bat');
+  FindExtrasFile(MainDir, '*.bat', ExtrassList);
   if ExtrassList.Count <> -1 then
   for i := 0 to ExtrassList.Count-1 do
    begin
@@ -435,10 +297,83 @@ begin
   KillTimer(MainForm.Handle,TIMER1);
 end;
 
+procedure TMainForm.PlayVideoOnClick;
+var
+  Videos: TStringDynArray;
+  VideoPath: String;
+begin
+with MainForm do
+begin
+if eXoDOSSheet.Visible then
+ if DosMainList.ItemIndex <> -1 then
+ begin
+  if DirectoryExists(GetMainDir+'Videos\MS-DOS\Recordings') then
+   begin
+    Videos := TDirectory.GetFiles(GetMainDir+'Videos\MS-DOS\Recordings', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+    for VideoPath in Videos do MFPlay(AppHandle, VideoPath);
+    if FileExists(VideoPath) then
+     begin
+      PageControl2.ActivePageIndex := 1;
+      PlaybackTimer.Enabled := True;
+     end else
+    if not FileExists(VideoPath) then
+     begin
+      PlaybackTimer.Enabled := False;
+      MfDestroy;
+      PageControl2.ActivePageIndex := 0;
+     end;
+   end;
+ end;
+if eXoWin3xSheet.Visible then
+if Win3xMainList.ItemIndex <> -1 then
+ begin
+  if DirectoryExists(GetMainDir+'Videos\Windows 3x\Recordings') then
+   begin
+    Videos := TDirectory.GetFiles(GetMainDir+'Videos\Windows 3x\Recordings', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+    for VideoPath in Videos do MFPlay(AppHandle, VideoPath);
+    if FileExists(VideoPath) then
+     begin
+      PageControl2.ActivePageIndex := 1;
+      PlaybackTimer.Enabled := True;
+     end else
+    if not FileExists(VideoPath) then
+     begin
+      PlaybackTimer.Enabled := False;
+      MfDestroy;
+      PageControl2.ActivePageIndex := 0;
+     end;
+   end;
+ end;
+if eXoScummVMSheet.Visible then
+if ScummVMMainList.ItemIndex <> -1 then
+ begin
+  if DirectoryExists(GetMainDir+'Videos\ScummVM\Recordings') and (DirectoryExists(GetMainDir+'Videos\ScummVM SVN\Recordings')) then
+   begin
+    Videos := TDirectory.GetFiles(GetMainDir+'Videos\ScummVM\Recordings', ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+    if VideoPath = '' then
+    Videos := TDirectory.GetFiles(GetMainDir+'Videos\ScummVM SVN\Recordings', ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+    for VideoPath in Videos do MFPlay(AppHandle, VideoPath);
+    if FileExists(VideoPath) then
+     begin
+      PageControl2.ActivePageIndex := 1;
+      PlaybackTimer.Enabled := True;
+     end else
+    if not FileExists(VideoPath) then
+     begin
+      PlaybackTimer.Enabled := False;
+      MfDestroy;
+      PageControl2.ActivePageIndex := 0;
+     end;
+   end;
+ end;
+end;
+end;
+
 //IniFile
 
 function TMainForm.GetFConfig: TMemIniFile;
 begin
+  SetCurrentDir(ExtractFilePath(Application.ExeName));
   if FConfig = nil then
   FConfig := TMemIniFile.Create(ExtractFilePath(Application.ExeName)+'config.ini',TEncoding.UTF8);
   Result := FConfig;
@@ -487,7 +422,10 @@ if FirstRun = True then
    FConfig.WriteInteger('General','Left',Left);
    FConfig.WriteInteger('General','Width',Width);
    FConfig.WriteInteger('General','Height',Height);
+   FConfig.WriteInteger('General','SplitterPos',PageControl.Width);
    FConfig.WriteInteger('General','OnTray',0);
+   FConfig.WriteInteger('General','Launcher state',0);
+   FConfig.WriteFloat('General','Volume',1);
    FConfig.UpdateFile;
   end;
  end;
@@ -499,6 +437,11 @@ if Write = true then
   FConfig.WriteInteger('General','Width',Width);
   FConfig.WriteInteger('General','Height',Height);
   FConfig.WriteInteger('General','OnTray',OnTray);
+  FConfig.WriteInteger('General','Launcher state',LauncherState);
+  if PageControl2.Visible = True then
+  begin
+   FConfig.WriteInteger('General','SplitterPos',PageControl.Width);
+  end;
   FConfig.UpdateFile;
  end else
  begin
@@ -508,10 +451,33 @@ if Write = true then
   Height := FConfig.ReadInteger('General','Height',Height);
   OnTray := FConfig.ReadInteger('General','OnTray',0);
   TrayAction(OnTray);
+  LauncherState := FConfig.ReadInteger('General','Launcher state',0);
+  case LauncherState of
+   0:
+    begin
+     PageControl.Align := alClient;
+     PageControl2.Visible := False;
+     MainSplitter.Visible := False;
+    end;
+   1:
+    begin
+     PageControl.Align := alLeft;
+     PageControl2.Visible := True;
+     MainSplitter.Visible := True;
+     PageControl2.ActivePage := nil;
+     PageControl.Width := FConfig.ReadInteger('General','SplitterPos',PageControl.Width);
+    end;
+  end;
  end;
 end;
 
 //TMainForm
+
+procedure TMainForm.WMSize(var Msg: TMessage);
+begin
+  inherited;
+  if (Msg.wParam = SIZE_RESTORED) then MFWMSize(AppHandle);
+end;
 
 procedure TMainForm.OnMinimize(Sender: TObject);
 begin
@@ -534,11 +500,12 @@ if not FileExists(ExtractFilePath(ParamStr(0))+'config.ini') then
   RegIni(False, True);
  end else Position := poDefaultPosOnly;
 
+RegIni(False, False);
+
 eXoDOSSheet.TabVisible := ExistsGameDir('eXoDOS');
 eXoWin3xSheet.TabVisible := ExistsGameDir('eXoWin3x');
 eXoScummVMSheet.TabVisible := ExistsGameDir('eXoScummVM');
 
-RegIni(False, False);
 
 if LoadResourceFontByID(1, 'MYFONT') then
  begin
@@ -597,6 +564,13 @@ ScummVMList := TStringList.Create;
 ScummVMPath := TStringList.Create;
 ExtrassList := TStringList.Create;
 SetTimer(Handle,TIMER1,1000,@TimerCallBack1);
+
+//mfplayer
+if PageControl2.Visible = True then
+ begin
+  AppHandle := VideoBox.Handle;
+  g_bHasVideo := False;
+ end;
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -619,17 +593,27 @@ Win3xPath.Free;
 ScummVMList.Free;
 ScummVMPath.Free;
 ExtrassList.Free;
+if PageControl2.Visible = True then MfDestroy;
 end;
 
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+if Key = VK_F1 then MessageBox(Handle,'Keyboard shortcuts:' +
+                                #10 + '1. Ctrl - | Volume Down' +
+                                #10 + '2. Ctrl + | Volume UP',
+                                'Help',0);
 if Key = VK_F5 then AddGamesToList;
 if Key = VK_RETURN then
  begin
    if eXoDOSSheet.Visible then DosMainListDblClick(Sender);
    if eXoWin3xSheet.Visible then Win3xMainListDblClick(Sender);
    if eXoScummVMSheet.Visible then ScummVMMainListDblClick(Sender);
+ end;
+if PageControl2.Visible = True then
+ begin
+  if (ssCtrl in Shift) and (Key = $BD) then MFVolumeDOWN;
+  if (ssCtrl in Shift) and (Key = $BB) then MFVolumeUP;
  end;
 end;
 
@@ -652,12 +636,15 @@ Canvas.Pen.Color := clBlack;
 Canvas.Pen.Style := psSolid;
 Canvas.Pen.Width := 24;
 Canvas.Rectangle (0, ClientHeight -16, ClientWidth, ClientHeight);
+
+//MFVideo
+if PageControl2.Visible = True then MFPaint(AppHandle);
 end;
 
 procedure TMainForm.FormResize(Sender: TObject);
 begin
 Repaint;
-PageControl.SetBounds(10,10,ClientWidth -20, ClientHeight -44);
+MainPanel.SetBounds(10,10,ClientWidth -20, ClientHeight -44);
 cmdlabel.SetBounds(8,ClientHeight -20, cmdlabel.Width, cmdlabel.Height);
 FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18);
 end;
@@ -672,13 +659,15 @@ begin
 //by default manual menu is not enabled
 Manual1.Enabled := False;
 
+Launcherstate1.Items[LauncherState].Checked := True;
+
 if eXoDOSSheet.Visible then
  if DosMainList.ItemIndex <> -1 then
  begin
   //add Aditional to menu
   ExtrasFileAdd(Extras1);
   //if Exists manual in dir to menu manual is enabled
-  Manuals := TDirectory.GetFiles(GetManualDir+'MS-DOS', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals\MS-DOS', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do
   Manual1.Enabled := True;
  end;
@@ -689,7 +678,7 @@ if eXoWin3xSheet.Visible then
   //add Aditional to menu
   ExtrasFileAdd(Extras1);
   //if Exists manual in dir to menu manual is enabled
-  Manuals := TDirectory.GetFiles(GetManualDir+'Windows 3x', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals\Windows 3x', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do
   Manual1.Enabled := True;
  end;
@@ -700,7 +689,7 @@ if eXoScummVMSheet.Visible then
   //add Aditional to menu
   ExtrasFileAdd(Extras1);
   //if Exists manual in dir to menu manual is enabled
-  Manuals := TDirectory.GetFiles(GetManualDir, ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals', ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do
   Manual1.Enabled := True;
  end;
@@ -716,17 +705,20 @@ var
 begin
 if eXoDOSSheet.Visible then
  begin
-  Manuals := TDirectory.GetFiles(GetManualDir+'MS-DOS', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  SetCurrentDir(GetMainDir);
+  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals\MS-DOS', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do RunApplication(ManualPath,'');
  end;
 if eXoWin3xSheet.Visible then
  begin
-  Manuals := TDirectory.GetFiles(GetManualDir+'Windows 3x', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  SetCurrentDir(GetMainDir);
+  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals\Windows 3x', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do RunApplication(ManualPath,'');
  end;
 if eXoScummVMSheet.Visible then
  begin
-  Manuals := TDirectory.GetFiles(GetManualDir, ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  SetCurrentDir(GetMainDir);
+  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals', ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do RunApplication(ManualPath,'');
  end;
 end;
@@ -837,25 +829,33 @@ begin
 TrayAction(2);
 end;
 
+procedure TMainForm.Simple1Click(Sender: TObject);
+begin
+LauncherState := (Sender as TMenuItem).MenuIndex;
+ShowMessage('Need to restart application!');
+end;
+
 //TMainList
 
 procedure TMainForm.TrayIconClick(Sender: TObject);
 begin
-ShowWindow(Handle, SW_RESTORE);
-ShowWindow(Handle, SW_SHOW);
-SetForegroundWindow(Handle);
+OnRestore(Sender);
 end;
 
 procedure TMainForm.DosMainListClick(Sender: TObject);
 begin
 MainForm.Caption := SetCaption;
 TrayIcon.Hint := MainForm.Caption;
+
 if eXoDOSSheet.Visible then
 if DosMainList.ItemIndex <> -1 then DOSIndex := DosMainList.Items[DosMainList.ItemIndex];
 if eXoWin3xSheet.Visible then
 if Win3xMainList.ItemIndex <> -1 then Win3xIndex := Win3xMainList.Items[Win3xMainList.ItemIndex];
 if eXoScummVMSheet.Visible then
 if ScummVMMainList.ItemIndex <> -1 then ScummVMIndex := ScummVMMainList.Items[ScummVMMainList.ItemIndex];
+
+//PlayVideo on click
+if PageControl2.Visible = True then PlayVideoOnClick;
 end;
 
 procedure TMainForm.DosMainListDblClick(Sender: TObject);
@@ -890,12 +890,10 @@ procedure TMainForm.DosMainListMouseDown(Sender: TObject; Button: TMouseButton;
 begin
 with (Sender as TListBox) do ItemIndex := ItemAtPos(Point(X, Y), True);
 
-MainForm.Caption := SetCaption;
-TrayIcon.Hint := MainForm.Caption;
-
 if Button = mbRight then
 if (Sender as TListBox).ItemIndex <> -1 then
  begin
+  DosMainListClick(Sender);
   Open1.Enabled := True;
   Install1.Enabled := True;
   Extras1.Enabled := True;
@@ -904,6 +902,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   ListMenu.Popup(Mouse.CursorPos.X,Mouse.CursorPos.Y);
  end else
  begin
+  DosMainListClick(Sender);
   Open1.Enabled := False;
   Install1.Enabled := False;
   Extras1.Enabled := False;
@@ -941,9 +940,22 @@ FindEdit.Text := '';
 FindEdit.Enabled := True;
 FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18);
 
+//is active tab with video is playing then is stopped
+if PageControl2.Visible = True then
+if PageControl2.ActivePageIndex = 1 then
+ begin
+  PlaybackTimer.Enabled := False;
+  MfDestroy;
+ end;
+
 if ExistsGameDir('eXoDOS') then
 if eXoDOSSheet.Visible then
  begin
+  if PageControl2.Visible = True then
+   begin
+    LoadImageFromRes('exodos',ImageBox);
+    PageControl2.ActivePageIndex := 0;
+   end;
   ActiveControl := DosMainList;
   MainForm.DosMainList.Items.Assign(DosList);
   if DosList.Count <> -1 then
@@ -959,6 +971,11 @@ if eXoDOSSheet.Visible then
 if ExistsGameDir('eXoWin3x') then
 if eXoWin3xSheet.Visible then
  begin
+  if PageControl2.Visible = True then
+   begin
+    LoadImageFromRes('exowin3x',ImageBox);
+    PageControl2.ActivePageIndex := 0;
+   end;
   ActiveControl := Win3xMainList;
   MainForm.Win3xMainList.Items.Assign(Win3xList);
   if Win3xList.Count <> -1 then
@@ -974,6 +991,11 @@ if eXoWin3xSheet.Visible then
 if ExistsGameDir('eXoScummVM') then
 if eXoScummVMSheet.Visible then
  begin
+  if PageControl2.Visible = True then
+   begin
+    LoadImageFromRes('scummvm',ImageBox);
+    PageControl2.ActivePageIndex := 0;
+   end;
   ActiveControl := ScummVMMainList;
   MainForm.ScummVMMainList.Items.Assign(ScummVMList);
   if ScummVMList.Count <> -1 then
@@ -1027,6 +1049,15 @@ if Key = VK_ESCAPE then
    PeekMessage(Mgs, 0, WM_CHAR, WM_CHAR, PM_REMOVE);
    FindEdit.Text := '';
   end;
+end;
+
+procedure TMainForm.PlaybackTimerTimer(Sender: TObject);
+begin
+if MFIfStoping = True then
+ begin
+  PageControl2.ActivePageIndex := 0;
+  PlaybackTimer.Enabled := False;
+ end;
 end;
 
 end.

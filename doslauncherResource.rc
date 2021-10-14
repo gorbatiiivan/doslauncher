@@ -1,1 +1,4 @@
 1 MYFONT "modern_dos\\ModernDOS8x14.ttf"
+exodos RCDATA "images\\exodos.jpg"
+exowin3x RCDATA "images\\exowin3x.jpg"
+scummvm RCDATA "images\\scummvm.jpg"
