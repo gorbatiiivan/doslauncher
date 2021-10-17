@@ -91,7 +91,6 @@ type
     procedure PlaybackTimerTimer(Sender: TObject);
   private
     { Private declarations }
-
     function GetFConfig: TMemIniFile;
     procedure RegIni(Write: Boolean; FirstRun: Boolean);
     procedure OnMinimize(Sender: TObject);
@@ -599,9 +598,16 @@ end;
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-if Key = VK_F1 then MessageBox(Handle,'Keyboard shortcuts:' +
+if Key = VK_F1 then MessageBox(Handle,'-- Keyboard shortcuts --' +
+                                #10 +
+                                #10 + 'Main shortcuts:' +
                                 #10 + '1. Ctrl - | Volume Down' +
-                                #10 + '2. Ctrl + | Volume UP',
+                                #10 + '2. Ctrl + | Volume UP' +
+                                #10 + '3. F5     | Scanning games list'+
+                                #10 + '4. Enter  | Run select game'+
+                                #10 +
+                                #10 + 'Find edit box:'+
+                                #10 + 'Escape    | Clear find items',
                                 'Help',0);
 if Key = VK_F5 then AddGamesToList;
 if Key = VK_RETURN then

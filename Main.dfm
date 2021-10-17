@@ -11,7 +11,9 @@ object MainForm: TMainForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  ScreenSnap = True
   ShowHint = True
+  SnapBuffer = 8
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
