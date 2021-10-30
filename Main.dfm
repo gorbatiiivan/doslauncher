@@ -2,7 +2,7 @@ object MainForm: TMainForm
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMinimize]
-  ClientHeight = 665
+  ClientHeight = 613
   ClientWidth = 584
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -10,10 +10,9 @@ object MainForm: TMainForm
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
-  ScreenSnap = True
+  OldCreateOrder = True
   ShowHint = True
-  SnapBuffer = 8
+  SnapBuffer = 4
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -23,16 +22,16 @@ object MainForm: TMainForm
   PixelsPerInch = 96
   TextHeight = 13
   object cmdlabel: TLabel
-    Left = 56
-    Top = 640
+    Left = 16
+    Top = 568
     Width = 25
     Height = 13
     Caption = 'find \'
     Transparent = True
   end
   object FindEdit: TEdit
-    Left = 140
-    Top = 636
+    Left = 100
+    Top = 564
     Width = 121
     Height = 21
     AutoSize = False
@@ -49,16 +48,16 @@ object MainForm: TMainForm
     Left = 0
     Top = 5
     Width = 576
-    Height = 625
+    Height = 548
     BevelOuter = bvNone
     TabOrder = 1
     object MainSplitter: TSplitter
       AlignWithMargins = True
       Left = 497
-      Top = 24
-      Height = 601
+      Top = 27
+      Height = 521
       Margins.Left = 0
-      Margins.Top = 24
+      Margins.Top = 27
       Margins.Right = 0
       Margins.Bottom = 0
       ResizeStyle = rsUpdate
@@ -70,7 +69,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 497
-      Height = 625
+      Height = 548
       ActivePage = eXoDOSSheet
       Align = alLeft
       Font.Charset = DEFAULT_CHARSET
@@ -89,7 +88,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 489
-          Height = 591
+          Height = 514
           Style = lbOwnerDrawFixed
           Align = alClient
           BorderStyle = bsNone
@@ -117,7 +116,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 489
-          Height = 591
+          Height = 514
           Style = lbOwnerDrawFixed
           Align = alClient
           BorderStyle = bsNone
@@ -145,7 +144,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 489
-          Height = 591
+          Height = 514
           Style = lbOwnerDrawFixed
           Align = alClient
           BorderStyle = bsNone
@@ -170,11 +169,11 @@ object MainForm: TMainForm
     object PageControl2: TPageControl
       AlignWithMargins = True
       Left = 500
-      Top = 22
+      Top = 25
       Width = 76
-      Height = 603
+      Height = 523
       Margins.Left = 0
-      Margins.Top = 22
+      Margins.Top = 25
       Margins.Right = 0
       Margins.Bottom = 0
       ActivePage = TabSheet2
@@ -189,7 +188,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 68
-          Height = 593
+          Height = 513
           Align = alClient
           Stretch = True
           ExplicitLeft = 32
@@ -206,7 +205,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 68
-          Height = 593
+          Height = 513
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 0
@@ -217,7 +216,7 @@ object MainForm: TMainForm
   object ListMenu: TPopupMenu
     OnPopup = ListMenuPopup
     Left = 16
-    Top = 616
+    Top = 504
     object Open1: TMenuItem
       Caption = 'Play'
       Default = True
@@ -246,6 +245,14 @@ object MainForm: TMainForm
     object N2: TMenuItem
       Caption = '-'
     end
+    object FullScreen1: TMenuItem
+      AutoCheck = True
+      Caption = 'FullScreen'
+      OnClick = FullScreen1Click
+    end
+    object N10: TMenuItem
+      Caption = '-'
+    end
     object Refresh1: TMenuItem
       Caption = 'Refresh'
       ShortCut = 116
@@ -256,6 +263,13 @@ object MainForm: TMainForm
     end
     object Options1: TMenuItem
       Caption = 'Options'
+      object FullScreenonstartup1: TMenuItem
+        AutoCheck = True
+        Caption = 'FullScreen on startup'
+      end
+      object N9: TMenuItem
+        Caption = '-'
+      end
       object Launcherstate1: TMenuItem
         Caption = 'Launcher state'
         object Simple1: TMenuItem
@@ -310,11 +324,11 @@ object MainForm: TMainForm
     PopupMenu = TrayMenu
     OnClick = TrayIconClick
     Left = 20
-    Top = 534
+    Top = 422
   end
   object TrayMenu: TPopupMenu
     Left = 16
-    Top = 576
+    Top = 464
     object Show1: TMenuItem
       Caption = 'Show'
       Default = True
@@ -333,6 +347,6 @@ object MainForm: TMainForm
     Interval = 2000
     OnTimer = PlaybackTimerTimer
     Left = 20
-    Top = 499
+    Top = 387
   end
 end

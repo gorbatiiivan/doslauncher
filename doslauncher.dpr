@@ -22,7 +22,7 @@ begin
   if GetLastError = ERROR_ALREADY_EXISTS then Exit;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  TStyleManager.TrySetStyle('Metropolis UI Blue');
+  TStyleManager.TrySetStyle('Windows10 Blue');
   Application.CreateForm(TMainForm, MainForm);
   Application.Run;
 end.

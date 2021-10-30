@@ -56,6 +56,10 @@ type
     Extended1: TMenuItem;
     N8: TMenuItem;
     PlaybackTimer: TTimer;
+    FullScreen1: TMenuItem;
+    N9: TMenuItem;
+    N10: TMenuItem;
+    FullScreenonstartup1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure DosMainListDblClick(Sender: TObject);
@@ -89,6 +93,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Simple1Click(Sender: TObject);
     procedure PlaybackTimerTimer(Sender: TObject);
+    procedure FullScreen1Click(Sender: TObject);
   private
     { Private declarations }
     function GetFConfig: TMemIniFile;
@@ -117,6 +122,7 @@ var
   DOSIndex, Win3xIndex, ScummVMIndex: String;
   AppHandle: HWND;
   LauncherState: Integer = 0;
+  isFullScreen: Boolean = False;
 
 implementation
 
@@ -318,7 +324,7 @@ if eXoDOSSheet.Visible then
     if not FileExists(VideoPath) then
      begin
       PlaybackTimer.Enabled := False;
-      MfDestroy;
+      MFStop;
       PageControl2.ActivePageIndex := 0;
      end;
    end;
@@ -338,7 +344,7 @@ if Win3xMainList.ItemIndex <> -1 then
     if not FileExists(VideoPath) then
      begin
       PlaybackTimer.Enabled := False;
-      MfDestroy;
+      MFStop;
       PageControl2.ActivePageIndex := 0;
      end;
    end;
@@ -360,7 +366,7 @@ if ScummVMMainList.ItemIndex <> -1 then
     if not FileExists(VideoPath) then
      begin
       PlaybackTimer.Enabled := False;
-      MfDestroy;
+      MFStop;
       PageControl2.ActivePageIndex := 0;
      end;
    end;
@@ -425,29 +431,47 @@ if FirstRun = True then
    FConfig.WriteInteger('General','OnTray',0);
    FConfig.WriteInteger('General','Launcher state',0);
    FConfig.WriteFloat('General','Volume',1);
+   FConfig.WriteBool('General','FullScreen',False);
    FConfig.UpdateFile;
   end;
  end;
 GetFConfig;
 if Write = true then
  begin
-  FConfig.WriteInteger('General','Top',Top);
-  FConfig.WriteInteger('General','Left',Left);
-  FConfig.WriteInteger('General','Width',Width);
-  FConfig.WriteInteger('General','Height',Height);
+  FConfig.WriteBool('General','FullScreen',FullScreenonstartup1.Checked);
+  if FullScreenonstartup1.Checked = False then
+  if isFullScreen = False then
+   begin
+    FConfig.WriteInteger('General','Top',Top);
+    FConfig.WriteInteger('General','Left',Left);
+    FConfig.WriteInteger('General','Width',Width);
+    FConfig.WriteInteger('General','Height',Height);
+   end;
   FConfig.WriteInteger('General','OnTray',OnTray);
   FConfig.WriteInteger('General','Launcher state',LauncherState);
   if PageControl2.Visible = True then
   begin
-   FConfig.WriteInteger('General','SplitterPos',PageControl.Width);
+   if isFullScreen = True then
+   FConfig.WriteInteger('General','SplitterPosFull',PageControl.Width)
+   else
+   FConfig.WriteInteger('General','SplitterPosNormal',PageControl.Width);
   end;
   FConfig.UpdateFile;
  end else
  begin
-  Top := FConfig.ReadInteger('General','Top',Top);
-  Left := FConfig.ReadInteger('General','Left',Left);
-  Width := FConfig.ReadInteger('General','Width',Width);
-  Height := FConfig.ReadInteger('General','Height',Height);
+  FullScreenonstartup1.Checked := FConfig.ReadBool('General','FullScreen',False);
+  if FullScreenonstartup1.Checked = False then
+  begin
+   Top := FConfig.ReadInteger('General','Top',Top);
+   Left := FConfig.ReadInteger('General','Left',Left);
+   Width := FConfig.ReadInteger('General','Width',Width);
+   Height := FConfig.ReadInteger('General','Height',Height);
+  end else
+  begin
+   isFullScreen := True;
+   MainForm.BorderStyle := bsNone;
+   MainForm.WindowState := wsMaximized;
+  end;
   OnTray := FConfig.ReadInteger('General','OnTray',0);
   TrayAction(OnTray);
   LauncherState := FConfig.ReadInteger('General','Launcher state',0);
@@ -464,7 +488,10 @@ if Write = true then
      PageControl2.Visible := True;
      MainSplitter.Visible := True;
      PageControl2.ActivePage := nil;
-     PageControl.Width := FConfig.ReadInteger('General','SplitterPos',PageControl.Width);
+     if isFullScreen = True then
+     PageControl.Width := FConfig.ReadInteger('General','SplitterPosFull',PageControl.Width)
+     else
+     PageControl.Width := FConfig.ReadInteger('General','SplitterPosNormal',PageControl.Width);
     end;
   end;
  end;
@@ -486,8 +513,15 @@ end;
 
 procedure TMainForm.OnRestore(Sender: TObject);
 begin
-ShowWindow(Handle, SW_RESTORE);
-ShowWindow(Handle, SW_SHOW);
+if isFullScreen = True then
+ begin
+  ShowWindow(Handle, SW_RESTORE);
+  ShowWindow(Handle, SW_SHOWMAXIMIZED);
+ end else
+ begin
+  ShowWindow(Handle, SW_RESTORE);
+  ShowWindow(Handle, SW_SHOW);
+ end;
 SetForegroundWindow(Handle);
 end;
 
@@ -505,23 +539,22 @@ eXoDOSSheet.TabVisible := ExistsGameDir('eXoDOS');
 eXoWin3xSheet.TabVisible := ExistsGameDir('eXoWin3x');
 eXoScummVMSheet.TabVisible := ExistsGameDir('eXoScummVM');
 
-
 if LoadResourceFontByID(1, 'MYFONT') then
  begin
    MainForm.ParentFont := False;
    MainForm.Font.Size := 8;
-   MainForm.Font.Name := 'Modern DOS 8x14';
+   MainForm.Font.Name := 'Modern DOS 8x16';
 
    cmdlabel.ParentFont := False;
    cmdlabel.Font.Size := 12;
-   cmdlabel.Font.Name := 'Modern DOS 8x14';
+   cmdlabel.Font.Name := 'Modern DOS 8x16';
    cmdlabel.Font.Color := clBlack;
    cmdlabel.Color := clWhite;
    cmdlabel.Caption := 'c:\eXo>find ';
 
    FindEdit.ParentFont := False;
    FindEdit.Font.Size := 12;
-   FindEdit.Font.Name := 'Modern DOS 8x14';
+   FindEdit.Font.Name := 'Modern DOS 8x16';
    FindEdit.ParentColor := True;
    FindEdit.Color := clBlack;
    FindEdit.Font.Color := clWhite;
@@ -529,28 +562,28 @@ if LoadResourceFontByID(1, 'MYFONT') then
 
    DosMainList.ParentFont := False;
    DosMainList.Font.Size := 12;
-   DosMainList.Font.Name := 'Modern DOS 8x14';
+   DosMainList.Font.Name := 'Modern DOS 8x16';
    DosMainList.ParentColor := True;
    DosMainList.Color := $00AA0000;
    DosMainList.Font.Color := $00FFFF55;
 
    Win3xMainList.ParentFont := False;
    Win3xMainList.Font.Size := 12;
-   Win3xMainList.Font.Name := 'Modern DOS 8x14';
+   Win3xMainList.Font.Name := 'Modern DOS 8x16';
    Win3xMainList.ParentColor := True;
    Win3xMainList.Color := $00AA0000;
    Win3xMainList.Font.Color := $00FFFF55;
 
    ScummVMMainList.ParentFont := False;
    ScummVMMainList.Font.Size := 12;
-   ScummVMMainList.Font.Name := 'Modern DOS 8x14';
+   ScummVMMainList.Font.Name := 'Modern DOS 8x16';
    ScummVMMainList.ParentColor := True;
    ScummVMMainList.Color := $00AA0000;
    ScummVMMainList.Font.Color := $00FFFF55;
 
    PageControl.ParentFont := False;
    PageControl.Font.Size := 12;
-   PageControl.Font.Name := 'Modern DOS 8x14';
+   PageControl.Font.Name := 'Modern DOS 8x16';
    PageControl.ActivePage := nil;
    PageControl.Enabled := False;
  end;
@@ -601,15 +634,17 @@ begin
 if Key = VK_F1 then MessageBox(Handle,'-- Keyboard shortcuts --' +
                                 #10 +
                                 #10 + 'Main shortcuts:' +
-                                #10 + '1. Ctrl - | Volume Down' +
-                                #10 + '2. Ctrl + | Volume UP' +
-                                #10 + '3. F5     | Scanning games list'+
-                                #10 + '4. Enter  | Run select game'+
+                                #10 + '1. Ctrl -      | Volume Down' +
+                                #10 + '2. Ctrl +      | Volume UP' +
+                                #10 + '3. F5          | Scanning games list'+
+                                #10 + '4. Enter       | Run select game'+
+                                #10 + '5. F11         | FullScreen'+
                                 #10 +
                                 #10 + 'Find edit box:'+
-                                #10 + 'Escape    | Clear find items',
+                                #10 + 'Escape         | Clear find items',
                                 'Help',0);
 if Key = VK_F5 then AddGamesToList;
+if Key = VK_F11 then FullScreen1Click(Sender);
 if Key = VK_RETURN then
  begin
    if eXoDOSSheet.Visible then DosMainListDblClick(Sender);
@@ -841,6 +876,34 @@ LauncherState := (Sender as TMenuItem).MenuIndex;
 ShowMessage('Need to restart application!');
 end;
 
+procedure TMainForm.FullScreen1Click(Sender: TObject);
+begin
+if isFullScreen = False then
+ begin
+  isFullScreen := True;
+  FConfig.WriteInteger('General','Top',Top);
+  FConfig.WriteInteger('General','Left',Left);
+  FConfig.WriteInteger('General','Width',Width);
+  FConfig.WriteInteger('General','Height',Height);
+  FConfig.UpdateFile;
+  MainForm.BorderStyle := bsNone;
+  MainForm.WindowState := wsMaximized;
+  if PageControl2.Visible = True then
+  PageControl.Width := FConfig.ReadInteger('General','SplitterPosFull',PageControl.Width);
+ end else
+ begin
+  isFullScreen := False;
+  MainForm.BorderStyle := bsSizeable;
+  MainForm.WindowState := wsNormal;
+  Top := FConfig.ReadInteger('General','Top',Top);
+  Left := FConfig.ReadInteger('General','Left',Left);
+  Width := FConfig.ReadInteger('General','Width',Width);
+  Height := FConfig.ReadInteger('General','Height',Height);
+  if PageControl2.Visible = True then
+  PageControl.Width := FConfig.ReadInteger('General','SplitterPosNormal',PageControl.Width);
+ end;
+end;
+
 //TMainList
 
 procedure TMainForm.TrayIconClick(Sender: TObject);
@@ -905,6 +968,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Extras1.Enabled := True;
   if ExistsGameDir('eXoDOS') then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
+  FullScreen1.Checked := isFullScreen;
   ListMenu.Popup(Mouse.CursorPos.X,Mouse.CursorPos.Y);
  end else
  begin
@@ -914,6 +978,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Extras1.Enabled := False;
   if ExistsGameDir('eXoDOS') then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
+  FullScreen1.Checked := isFullScreen;
   ListMenu.Popup(Mouse.CursorPos.X,Mouse.CursorPos.Y);
  end;
 end;
