@@ -1,6 +1,6 @@
 # doslauncher
 
-doslauncher is a small, portable with a minimal GUI launcher for eXo collections(eXoDOS V5,eXoWin3x,eXoScummVM and RLP)
+doslauncher is a small, portable with a minimal GUI launcher for eXo collections(eXoDOS V5,eXoWin3x,eXoScummVM)
 
 
 *****************************   Installation   *******************************
