@@ -9,10 +9,12 @@ doslauncher is a small, portable with a minimal GUI launcher for eXo collections
 2. Copy folder doslauncher\doslauncher.exe to eXoDOS\eXo\util\
 3. Run and play, enjoy :).
 
-![main](https://user-images.githubusercontent.com/84850541/131106238-1d3f7439-2fc4-4927-8352-7dd8b4e2b88e.PNG)
-![main2](https://user-images.githubusercontent.com/84850541/131106276-4bd1c8d6-7223-41cd-8bb5-c73a20544e70.PNG)
-![01](https://user-images.githubusercontent.com/84850541/137362177-08177e0c-b941-43d1-895f-3dee74d7928f.PNG)
-![02](https://user-images.githubusercontent.com/84850541/137362197-db3486ea-d560-4d2d-b0c7-9d67e884ef2d.PNG)
+![Main1](https://user-images.githubusercontent.com/84850541/139538252-2e333672-df6e-432d-8a5d-d43e2019156e.PNG)
+![Main2](https://user-images.githubusercontent.com/84850541/139538258-6fa5840b-e567-48a6-9a8c-e080d7e1e339.PNG)
+![main4](https://user-images.githubusercontent.com/84850541/139538266-92963fe3-a51d-4251-bd68-04e8be9e5a0d.PNG)
+
+FullScreen mode:
+![Main3](https://user-images.githubusercontent.com/84850541/139538262-d35bb170-aceb-4b9f-bd33-483f4a2cb5e6.PNG)
 
 If you find a bug or want to improve the program, please write to this e-mail : gorbatiiivan@gmail.com
 
