@@ -209,7 +209,55 @@ object MainForm: TMainForm
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 0
+          OnClick = VideoBoxClick
         end
+      end
+    end
+    object SysPanel: TPanel
+      Left = 256
+      Top = -1
+      Width = 316
+      Height = 25
+      BevelOuter = bvNone
+      TabOrder = 2
+      Visible = False
+      object MinButton: TSpeedButton
+        Left = 267
+        Top = 0
+        Width = 23
+        Height = 22
+        Caption = '_'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        OnClick = MinButtonClick
+      end
+      object CloseButton: TSpeedButton
+        Left = 296
+        Top = 0
+        Width = 23
+        Height = 22
+        Caption = 'X'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        OnClick = CloseButtonClick
+      end
+      object SysLabel: TLabel
+        Left = 0
+        Top = 0
+        Width = 42
+        Height = 25
+        Alignment = taCenter
+        AutoSize = False
+        Layout = tlCenter
+        StyleElements = [seClient, seBorder]
       end
     end
   end
@@ -247,7 +295,7 @@ object MainForm: TMainForm
     end
     object FullScreen1: TMenuItem
       AutoCheck = True
-      Caption = 'FullScreen'
+      Caption = 'Fullscreen'
       OnClick = FullScreen1Click
     end
     object N10: TMenuItem
@@ -265,7 +313,7 @@ object MainForm: TMainForm
       Caption = 'Options'
       object FullScreenonstartup1: TMenuItem
         AutoCheck = True
-        Caption = 'FullScreen on startup'
+        Caption = 'Fullscreen on startup'
       end
       object N9: TMenuItem
         Caption = '-'

@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls,
-  IniFiles, Vcl.ComCtrls, IOUtils, Types, Vcl.ExtCtrls;
+  IniFiles, Vcl.ComCtrls, IOUtils, Types, Vcl.ExtCtrls, Vcl.Buttons;
 
 const
   TIMER1 = 1;
@@ -60,6 +60,10 @@ type
     N9: TMenuItem;
     N10: TMenuItem;
     FullScreenonstartup1: TMenuItem;
+    SysPanel: TPanel;
+    MinButton: TSpeedButton;
+    CloseButton: TSpeedButton;
+    SysLabel: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure DosMainListDblClick(Sender: TObject);
@@ -94,6 +98,9 @@ type
     procedure Simple1Click(Sender: TObject);
     procedure PlaybackTimerTimer(Sender: TObject);
     procedure FullScreen1Click(Sender: TObject);
+    procedure VideoBoxClick(Sender: TObject);
+    procedure MinButtonClick(Sender: TObject);
+    procedure CloseButtonClick(Sender: TObject);
   private
     { Private declarations }
     function GetFConfig: TMemIniFile;
@@ -198,6 +205,7 @@ with MainForm do
    begin
     MainForm.Caption := 'Please wait...';
     TrayIcon.Hint := MainForm.Caption;
+    SysLabel.Caption := MainForm.Caption; 
     PageControl.Enabled := False;
     PageControl.ActivePage := nil;
     FindEdit.Text := '';
@@ -241,10 +249,12 @@ with MainForm do
     begin
      MainForm.Caption := 'Sorry, not found any eXo Collection folder';
      TrayIcon.Hint := MainForm.Caption;
+     SysLabel.Caption := MainForm.Caption; 
     end else
     begin
      MainForm.Caption := 'The scan is complete, please select your favorite tab.';
      TrayIcon.Hint := MainForm.Caption;
+     SysLabel.Caption := MainForm.Caption; 
     end;
 
      PageControl.Enabled := True;
@@ -471,6 +481,8 @@ if Write = true then
    isFullScreen := True;
    MainForm.BorderStyle := bsNone;
    MainForm.WindowState := wsMaximized;
+   SysPanel.Visible := isFullScreen;
+   SysLabel.Visible := isFullScreen;
   end;
   OnTray := FConfig.ReadInteger('General','OnTray',0);
   TrayAction(OnTray);
@@ -522,6 +534,8 @@ if isFullScreen = True then
   ShowWindow(Handle, SW_RESTORE);
   ShowWindow(Handle, SW_SHOW);
  end;
+SysPanel.Visible := isFullScreen;
+SysLabel.Visible := isFullScreen;
 SetForegroundWindow(Handle);
 end;
 
@@ -544,6 +558,11 @@ if LoadResourceFontByID(1, 'MYFONT') then
    MainForm.ParentFont := False;
    MainForm.Font.Size := 8;
    MainForm.Font.Name := 'Modern DOS 8x16';
+
+   SysLabel.ParentFont := False;
+   SysLabel.Font.Size := 12;
+   SysLabel.Font.Name := 'Modern DOS 8x16';
+   SysLabel.Font.Color := clWhite;
 
    cmdlabel.ParentFont := False;
    cmdlabel.Font.Size := 12;
@@ -641,8 +660,11 @@ if Key = VK_F1 then MessageBox(Handle,'-- Keyboard shortcuts --' +
                                 #10 + '5. F11         | FullScreen'+
                                 #10 +
                                 #10 + 'Find edit box:'+
-                                #10 + 'Escape         | Clear find items',
-                                'Help',0);
+                                #10 + 'Escape         | Clear find items'+
+                                #10 + ''+
+                                #10 + 'Press on the item on the list for replay video'+
+                                #10 + 'Press on the video for stop the video'
+                                ,'Help',0);
 if Key = VK_F5 then AddGamesToList;
 if Key = VK_F11 then FullScreen1Click(Sender);
 if Key = VK_RETURN then
@@ -684,10 +706,17 @@ end;
 
 procedure TMainForm.FormResize(Sender: TObject);
 begin
-Repaint;
 MainPanel.SetBounds(10,10,ClientWidth -20, ClientHeight -44);
 cmdlabel.SetBounds(8,ClientHeight -20, cmdlabel.Width, cmdlabel.Height);
 FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18);
+if isFullScreen = True then
+ begin
+  SysPanel.SetBounds(280,1,MainPanel.Width - 282, SysPanel.Height);
+  CloseButton.Left := SysPanel.Width - 24;
+  MinButton.Left := SysPanel.Width - 50;
+  SysLabel.SetBounds(2,0, SysPanel.Width-100, SysLabel.Height);
+ end;
+Repaint;
 end;
 
 //TListMenu
@@ -888,6 +917,8 @@ if isFullScreen = False then
   FConfig.UpdateFile;
   MainForm.BorderStyle := bsNone;
   MainForm.WindowState := wsMaximized;
+  SysPanel.Visible := True;
+  SysLabel.Visible := True;
   if PageControl2.Visible = True then
   PageControl.Width := FConfig.ReadInteger('General','SplitterPosFull',PageControl.Width);
  end else
@@ -895,6 +926,8 @@ if isFullScreen = False then
   isFullScreen := False;
   MainForm.BorderStyle := bsSizeable;
   MainForm.WindowState := wsNormal;
+  SysPanel.Visible := False;
+  SysLabel.Visible := False;
   Top := FConfig.ReadInteger('General','Top',Top);
   Left := FConfig.ReadInteger('General','Left',Left);
   Width := FConfig.ReadInteger('General','Width',Width);
@@ -913,18 +946,23 @@ end;
 
 procedure TMainForm.DosMainListClick(Sender: TObject);
 begin
-MainForm.Caption := SetCaption;
-TrayIcon.Hint := MainForm.Caption;
+TThread.Queue(nil,
+ procedure
+  begin
+   MainForm.Caption := SetCaption;
+   TrayIcon.Hint := MainForm.Caption;
+   SysLabel.Caption := MainForm.Caption;
+   if eXoDOSSheet.Visible then
+   if DosMainList.ItemIndex <> -1 then DOSIndex := DosMainList.Items[DosMainList.ItemIndex];
+   if eXoWin3xSheet.Visible then
+   if Win3xMainList.ItemIndex <> -1 then Win3xIndex := Win3xMainList.Items[Win3xMainList.ItemIndex];
+   if eXoScummVMSheet.Visible then
+   if ScummVMMainList.ItemIndex <> -1 then ScummVMIndex := ScummVMMainList.Items[ScummVMMainList.ItemIndex];
 
-if eXoDOSSheet.Visible then
-if DosMainList.ItemIndex <> -1 then DOSIndex := DosMainList.Items[DosMainList.ItemIndex];
-if eXoWin3xSheet.Visible then
-if Win3xMainList.ItemIndex <> -1 then Win3xIndex := Win3xMainList.Items[Win3xMainList.ItemIndex];
-if eXoScummVMSheet.Visible then
-if ScummVMMainList.ItemIndex <> -1 then ScummVMIndex := ScummVMMainList.Items[ScummVMMainList.ItemIndex];
-
-//PlayVideo on click
-if PageControl2.Visible = True then PlayVideoOnClick;
+   //PlayVideo on click
+   if PageControl2.Visible = True then PlayVideoOnClick;
+  end
+  );
 end;
 
 procedure TMainForm.DosMainListDblClick(Sender: TObject);
@@ -933,6 +971,7 @@ if DosMainList.ItemIndex <> -1 then
  begin
   SetCurrentDir(ExtractFilePath(GetDosCurrentDir));
   RunApplication(GetDosCurrentDir, '');
+  if PageControl2.Visible = True then MFStop;
  end;
 end;
 
@@ -1081,6 +1120,7 @@ if eXoScummVMSheet.Visible then
 
 MainForm.Caption := SetCaption;
 TrayIcon.Hint := MainForm.Caption;
+SysLabel.Caption := MainForm.Caption; 
 end;
 
 procedure TMainForm.FindEditChange(Sender: TObject);
@@ -1094,6 +1134,7 @@ if eXoScummVMSheet.Visible then
 
 MainForm.Caption := SetCaption;
 TrayIcon.Hint := MainForm.Caption;
+SysLabel.Caption := MainForm.Caption; 
 end;
 
 procedure TMainForm.FindEditContextPopup(Sender: TObject; MousePos: TPoint;
@@ -1129,6 +1170,21 @@ if MFIfStoping = True then
   PageControl2.ActivePageIndex := 0;
   PlaybackTimer.Enabled := False;
  end;
+end;
+
+procedure TMainForm.VideoBoxClick(Sender: TObject);
+begin
+if PageControl2.Visible = True then MFStop;
+end;
+
+procedure TMainForm.MinButtonClick(Sender: TObject);
+begin
+ Application.Minimize;
+end;
+
+procedure TMainForm.CloseButtonClick(Sender: TObject);
+begin
+ Close;
 end;
 
 end.
