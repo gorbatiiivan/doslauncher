@@ -19,8 +19,7 @@ Extended:
 ![main4](https://user-images.githubusercontent.com/84850541/139538266-92963fe3-a51d-4251-bd68-04e8be9e5a0d.PNG)
 
 FullScreen:
-
-![Main3](https://user-images.githubusercontent.com/84850541/139538262-d35bb170-aceb-4b9f-bd33-483f4a2cb5e6.PNG)
+![Снимок](https://user-images.githubusercontent.com/84850541/140613875-690a1e93-4eb8-43e2-b513-9618c070039b.PNG)
 
 If you find a bug or want to improve the program, please write to this e-mail : gorbatiiivan@gmail.com
 
