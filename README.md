@@ -16,11 +16,13 @@ Simple:
 
 Extended:
 
-![Main2](https://user-images.githubusercontent.com/84850541/139538258-6fa5840b-e567-48a6-9a8c-e080d7e1e339.PNG)
+![main1](https://user-images.githubusercontent.com/84850541/142477325-b9d9445b-ac64-4d22-a5da-d9ae70df4273.PNG)
 ![main4](https://user-images.githubusercontent.com/84850541/139538266-92963fe3-a51d-4251-bd68-04e8be9e5a0d.PNG)
 
 FullScreen:
-![Снимок](https://user-images.githubusercontent.com/84850541/140613875-690a1e93-4eb8-43e2-b513-9618c070039b.PNG)
+
+![main2](https://user-images.githubusercontent.com/84850541/142477399-84219fc8-b64a-4d3a-a8f1-2183d0603d58.PNG)
+
 
 If you find a bug or want to improve the program, please write to this e-mail : gorbatiiivan@gmail.com
 
