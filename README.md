@@ -8,7 +8,6 @@ doslauncher is a small, portable with a minimal GUI launcher for eXo collections
 1. Unzip doslauncher_x32.zip or doslauncher_x64.zip
 2. Copy folder doslauncher\doslauncher.exe to eXoDOS\eXo\util\
 3. Run and play, enjoy :).
-4. Press F1 in the doslauncher to know secrets and the shortcuts key.
 
 Simple:
 
