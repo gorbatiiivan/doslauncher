@@ -2,7 +2,7 @@
 
 interface
 
-uses Winapi.Windows, Forms, System.SysUtils, Vcl.StdCtrls, System.Classes, ShellAPI,
+uses Winapi.Windows, Winapi.Messages, Forms, System.SysUtils, Vcl.StdCtrls, System.Classes, ShellAPI,
      Vcl.Imaging.jpeg, Vcl.ExtCtrls, Vcl.Menus, Masks;
 
 
@@ -20,6 +20,9 @@ function ExistsGameDir(Name: String): Boolean;
 function ExistsDOSManualDir: Boolean;
 function GetExecDir: String;
 function GetMainDir: String;
+function GetNotesList(FileName: String): String;
+function StrCut(GameName, SourceString, StartStr, EndStr:String):String;
+function GetNotes(GameName, SourceMemo: String): String;
 
 implementation
 
@@ -206,6 +209,49 @@ begin
   s := IncludeTrailingPathDelimiter(s);
   SetCurrentDir(ExtractFilePath(Application.ExeName));
   Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+s;
+end;
+
+function GetNotesList(FileName: String): String;
+var
+  tempStringList  : TStringList;
+begin
+  tempStringList := TStringList.Create;
+  try
+    tempStringList.LoadFromFile(fileName);
+    Result := tempStringList.Text;
+  finally
+    tempStringList.Free;
+  end;
+end;
+
+function StrCut(GameName, SourceString, StartStr, EndStr:String):String;
+var
+  I,K: Integer;
+  Strn: String;
+begin
+Result:='';
+strn:=SourceString;
+i:=Pos(StartStr,Strn,Pos(GameName, SourceString));
+Strn:=Copy(Strn,i+Length(StartStr),Length(Strn)-Length(StartStr));
+i:=Pos(EndStr,Strn);
+if i=0 then
+  begin
+   i:=Length(Strn);
+   K:=0;
+  end else k:=Length(EndStr);
+Strn:=Copy (Strn,1,i-1);
+Result:=Strn;
+end;
+
+function GetNotes(GameName, SourceMemo: String): String;
+begin
+  Result := GameName + #10 +
+  #10+'By '+StrCut(GameName,SourceMemo,'<Developer>','</Developer>')+
+  #10+'Publisher '+StrCut(GameName,SourceMemo,'<Publisher>','</Publisher>')+
+  #10+'Genre '+StrCut(GameName,SourceMemo,'<Genre>','</Genre>')+
+  #10+'Series '+StrCut(GameName,SourceMemo,'<Series>','</Series>')+
+  #10+'PlayMode '+StrCut(GameName,SourceMemo,'<PlayMode>','</PlayMode>')+
+  #10 + #10 + StrCut(GameName,SourceMemo,'<Notes>','</Notes>');
 end;
 
 end.

@@ -60,6 +60,7 @@ object MainForm: TMainForm
       Margins.Top = 27
       Margins.Right = 0
       Margins.Bottom = 0
+      AutoSnap = False
       ResizeStyle = rsUpdate
       ExplicitLeft = 512
       ExplicitTop = 264
@@ -102,11 +103,11 @@ object MainForm: TMainForm
           Sorted = True
           TabOrder = 0
           StyleElements = [seFont, seBorder]
-          OnClick = DosMainListClick
-          OnDblClick = DosMainListDblClick
           OnDrawItem = DosMainListDrawItem
           OnKeyDown = FormKeyDown
+          OnKeyUp = DosMainListKeyUp
           OnMouseDown = DosMainListMouseDown
+          OnMouseUp = DosMainListMouseUp
         end
       end
       object eXoWin3xSheet: TTabSheet
@@ -130,11 +131,11 @@ object MainForm: TMainForm
           Sorted = True
           TabOrder = 0
           StyleElements = [seFont, seBorder]
-          OnClick = DosMainListClick
-          OnDblClick = Win3xMainListDblClick
           OnDrawItem = DosMainListDrawItem
           OnKeyDown = FormKeyDown
+          OnKeyUp = DosMainListKeyUp
           OnMouseDown = DosMainListMouseDown
+          OnMouseUp = DosMainListMouseUp
         end
       end
       object eXoScummVMSheet: TTabSheet
@@ -158,11 +159,11 @@ object MainForm: TMainForm
           Sorted = True
           TabOrder = 0
           StyleElements = [seFont, seBorder]
-          OnClick = DosMainListClick
-          OnDblClick = ScummVMMainListDblClick
           OnDrawItem = DosMainListDrawItem
           OnKeyDown = FormKeyDown
+          OnKeyUp = DosMainListKeyUp
           OnMouseDown = DosMainListMouseDown
+          OnMouseUp = DosMainListMouseUp
         end
       end
     end
@@ -201,15 +202,79 @@ object MainForm: TMainForm
         Caption = 'TabSheet2'
         ImageIndex = 1
         TabVisible = False
-        object VideoBox: TPanel
+        object VideoSplitter: TSplitter
           Left = 0
-          Top = 0
+          Top = 269
           Width = 68
-          Height = 513
-          Align = alClient
+          Height = 3
+          Cursor = crVSplit
+          Align = alTop
+          AutoSnap = False
+          ResizeStyle = rsUpdate
+          ExplicitTop = 265
+        end
+        object NotesBox: TMemo
+          AlignWithMargins = True
+          Left = 2
+          Top = 2
+          Width = 64
+          Height = 265
+          Margins.Left = 2
+          Margins.Top = 2
+          Margins.Right = 2
+          Margins.Bottom = 2
+          Align = alTop
+          BevelInner = bvNone
           BevelOuter = bvNone
+          BorderStyle = bsNone
+          Color = clWhite
+          ReadOnly = True
+          ScrollBars = ssVertical
           TabOrder = 0
-          OnClick = VideoBoxClick
+          StyleElements = [seBorder]
+          OnContextPopup = NotesBoxContextPopup
+          OnKeyDown = FormKeyDown
+        end
+        object PageControl3: TPageControl
+          Left = 0
+          Top = 272
+          Width = 68
+          Height = 241
+          ActivePage = VideoSheet
+          Align = alClient
+          TabOrder = 1
+          object VideoSheet: TTabSheet
+            Caption = 'VideoSheet'
+            TabVisible = False
+            object VideoBox: TPanel
+              Left = 0
+              Top = 0
+              Width = 60
+              Height = 231
+              Align = alClient
+              BevelOuter = bvNone
+              TabOrder = 0
+              OnClick = VideoBoxClick
+            end
+          end
+          object CoverSheet: TTabSheet
+            Caption = 'CoverSheet'
+            ImageIndex = 1
+            TabVisible = False
+            object CoverImage: TImage
+              Left = 0
+              Top = 0
+              Width = 60
+              Height = 231
+              Align = alClient
+              Center = True
+              Proportional = True
+              ExplicitLeft = 24
+              ExplicitTop = 56
+              ExplicitWidth = 105
+              ExplicitHeight = 105
+            end
+          end
         end
       end
     end
@@ -268,6 +333,7 @@ object MainForm: TMainForm
     object Open1: TMenuItem
       Caption = 'Play'
       Default = True
+      ShortCut = 13
       OnClick = Open1Click
     end
     object N1: TMenuItem
@@ -296,6 +362,7 @@ object MainForm: TMainForm
     object FullScreen1: TMenuItem
       AutoCheck = True
       Caption = 'Fullscreen'
+      ShortCut = 122
       OnClick = FullScreen1Click
     end
     object N10: TMenuItem
@@ -311,6 +378,14 @@ object MainForm: TMainForm
     end
     object Options1: TMenuItem
       Caption = 'Options'
+      object AboutHelp1: TMenuItem
+        Caption = 'About / Help'
+        ShortCut = 112
+        OnClick = AboutHelp1Click
+      end
+      object N11: TMenuItem
+        Caption = '-'
+      end
       object FullScreenonstartup1: TMenuItem
         AutoCheck = True
         Caption = 'Fullscreen on startup'
