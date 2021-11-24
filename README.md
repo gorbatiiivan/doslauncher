@@ -8,7 +8,7 @@ doslauncher is a small, portable with a minimal GUI launcher for eXo collections
 ![setup](https://user-images.githubusercontent.com/84850541/143288565-4d2e704c-0f32-4147-8d6f-406f94e0b905.PNG)
 
 1. Run doslauncher_x32.exe or doslauncher_x64.exe
-2. Select util directory from your eXo folder and press Extract button. 
+2. Select util directory from eXo folder and press Extract button. 
 4. Run and play, enjoy :).
 
 Simple:
