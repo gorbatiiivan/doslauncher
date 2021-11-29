@@ -14,13 +14,13 @@ function FindMenuString(List: TMenuItem; s: string): Integer;
 procedure FindFilePattern(root: String; pattern: String; NameList: TStringList; ListPath: TStringList);
 procedure FindExtrasFile(root: String; pattern: String; FList: TStringList);
 function RunApplication(const AExecutableFile, AParameters: string;
-  const AShowOption: Integer = SW_SHOWNORMAL): Integer;
+  const AShowOption: Integer = SW_SHOWNORMAL): Boolean;
 procedure FindListIndex(GameName: String; List: TListBox; BackupList: TStringList);
 function ExistsGameDir(Name: String): Boolean;
 function ExistsDOSManualDir: Boolean;
 function GetExecDir: String;
 function GetMainDir: String;
-function GetNotesList(FileName: String): String;
+function GetNotesList(const AFileName: string): AnsiString;
 function StrCut(GameName, SourceString, StartStr, EndStr:String):String;
 function GetNotes(GameName, SourceMemo: String): String;
 
@@ -146,11 +146,11 @@ begin
 end;
 
 function RunApplication(const AExecutableFile, AParameters: string;
-  const AShowOption: Integer = SW_SHOWNORMAL): Integer;
+  const AShowOption: Integer = SW_SHOWNORMAL): Boolean;
 var
   _SEInfo: TShellExecuteInfo;
 begin
-  Result := 0;
+  Result := False;
   if not FileExists(AExecutableFile) then
     Exit;
 
@@ -164,7 +164,7 @@ begin
   if ShellExecuteEx(@_SEInfo) then
   begin
     WaitForInputIdle(_SEInfo.hProcess, 3000);
-    Result := GetProcessID(_SEInfo.hProcess);
+    Result := True;
   end;
 end;
 
@@ -211,16 +211,22 @@ begin
   Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+s;
 end;
 
-function GetNotesList(FileName: String): String;
+function GetNotesList(const AFileName: string): AnsiString;
 var
-  tempStringList  : TStringList;
+  f: TFileStream;
+  l: Integer;
 begin
-  tempStringList := TStringList.Create;
+  Result := '';
+  f := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
   try
-    tempStringList.LoadFromFile(fileName);
-    Result := tempStringList.Text;
+    l := f.Size;
+    if L > 0 then
+    begin
+      SetLength(Result, l);
+      F.ReadBuffer(Result[1], l);
+    end;
   finally
-    tempStringList.Free;
+    F.Free;
   end;
 end;
 

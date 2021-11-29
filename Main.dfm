@@ -103,11 +103,12 @@ object MainForm: TMainForm
           Sorted = True
           TabOrder = 0
           StyleElements = [seFont, seBorder]
+          OnClick = DosMainListClick
+          OnDblClick = DosMainListDblClick
           OnDrawItem = DosMainListDrawItem
           OnKeyDown = FormKeyDown
           OnKeyUp = DosMainListKeyUp
           OnMouseDown = DosMainListMouseDown
-          OnMouseUp = DosMainListMouseUp
         end
       end
       object eXoWin3xSheet: TTabSheet
@@ -131,11 +132,12 @@ object MainForm: TMainForm
           Sorted = True
           TabOrder = 0
           StyleElements = [seFont, seBorder]
+          OnClick = DosMainListClick
+          OnDblClick = DosMainListDblClick
           OnDrawItem = DosMainListDrawItem
           OnKeyDown = FormKeyDown
           OnKeyUp = DosMainListKeyUp
           OnMouseDown = DosMainListMouseDown
-          OnMouseUp = DosMainListMouseUp
         end
       end
       object eXoScummVMSheet: TTabSheet
@@ -159,11 +161,12 @@ object MainForm: TMainForm
           Sorted = True
           TabOrder = 0
           StyleElements = [seFont, seBorder]
+          OnClick = DosMainListClick
+          OnDblClick = DosMainListDblClick
           OnDrawItem = DosMainListDrawItem
           OnKeyDown = FormKeyDown
           OnKeyUp = DosMainListKeyUp
           OnMouseDown = DosMainListMouseDown
-          OnMouseUp = DosMainListMouseUp
         end
       end
     end
@@ -291,6 +294,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 23
         Height = 22
+        Hint = 'Minimize'
         Caption = '_'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -305,6 +309,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 23
         Height = 22
+        Hint = 'Close'
         Caption = 'X'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -471,5 +476,11 @@ object MainForm: TMainForm
     OnTimer = PlaybackTimerTimer
     Left = 20
     Top = 387
+  end
+  object TimerOnClick: TTimer
+    Enabled = False
+    OnTimer = TimerOnClickTimer
+    Left = 20
+    Top = 339
   end
 end

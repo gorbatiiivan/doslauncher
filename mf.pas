@@ -27,6 +27,7 @@ type
   function PlayMediaFile(const hApp: HWND; const sURL: LPCWSTR): HResult;
   procedure MFPlay(MFHandle: THandle; FilePath: String);
   procedure MFStop;
+  procedure MFPause;
   function MFIfStoping: Boolean;
   procedure MFSetVolume(GetVolume: Float);
   procedure MFMute;
@@ -147,6 +148,19 @@ if Assigned(g_pPlayer) then
   hr := g_pPlayer.GetState(state);
   if (state = MFP_MEDIAPLAYER_STATE_PLAYING) then
   g_pPlayer.Stop();
+ end;
+end;
+
+procedure MFPause;
+var
+  hr: HResult;
+  state: MFP_MEDIAPLAYER_STATE;
+begin
+if Assigned(g_pPlayer) then
+ begin
+  hr := g_pPlayer.GetState(state);
+  if (state = MFP_MEDIAPLAYER_STATE_PLAYING) then
+  g_pPlayer.Pause();
  end;
 end;
 
