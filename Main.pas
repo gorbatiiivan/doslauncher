@@ -1,6 +1,3 @@
-//PlaybackTimer - dupa ce se termina video se schimba pagecontrol la imagine
-//VideoTimer - pentru schimbarea item la listbox se atribuie 1250ms pentru sa se porneasca video
-
 unit Main;
 
 interface
@@ -8,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls,
-  IniFiles, Vcl.ComCtrls, IOUtils, Types, Vcl.ExtCtrls, Vcl.Buttons;
+  IniFiles, Vcl.ComCtrls, IOUtils, Types, Vcl.ExtCtrls, Vcl.Buttons,
+  System.Actions, Vcl.ActnList;
 
 const
   TIMER1 = 1;
@@ -57,7 +55,7 @@ type
     Simple1: TMenuItem;
     Extended1: TMenuItem;
     N8: TMenuItem;
-    PlaybackTimer: TTimer;
+    VideoEndTimer: TTimer;
     FullScreen1: TMenuItem;
     N9: TMenuItem;
     N10: TMenuItem;
@@ -76,9 +74,18 @@ type
     AboutHelp1: TMenuItem;
     N11: TMenuItem;
     TimerOnClick: TTimer;
+    ActionList: TActionList;
+    ATabChange: TAction;
+    AAbout: TAction;
+    AScan: TAction;
+    AFullScreen: TAction;
+    ADblClickonListBox: TAction;
+    AVolDown: TAction;
+    AVolUP: TAction;
+    APlayPause: TAction;
+    AManualView: TAction;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DosMainListMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure Install1Click(Sender: TObject);
@@ -104,7 +111,7 @@ type
     procedure Close1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Simple1Click(Sender: TObject);
-    procedure PlaybackTimerTimer(Sender: TObject);
+    procedure VideoEndTimerTimer(Sender: TObject);
     procedure FullScreen1Click(Sender: TObject);
     procedure VideoBoxClick(Sender: TObject);
     procedure MinButtonClick(Sender: TObject);
@@ -117,6 +124,16 @@ type
     procedure DosMainListDblClick(Sender: TObject);
     procedure TimerOnClickTimer(Sender: TObject);
     procedure DosMainListClick(Sender: TObject);
+    procedure ATabChangeExecute(Sender: TObject);
+    procedure AAboutExecute(Sender: TObject);
+    procedure AScanExecute(Sender: TObject);
+    procedure AFullScreenExecute(Sender: TObject);
+    procedure ADblClickonListBoxExecute(Sender: TObject);
+    procedure AVolDownExecute(Sender: TObject);
+    procedure AVolUPExecute(Sender: TObject);
+    procedure DosMainListKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure APlayPauseExecute(Sender: TObject);
   private
     { Private declarations }
     IsArrowDown: Boolean;
@@ -156,7 +173,7 @@ implementation
 
 uses utils, mf;
 
-//procedure/functions
+//procedure/functions//////////////////////////////////////////////////////////
 
 function GetDosCurrentDir: String;
 begin
@@ -186,32 +203,24 @@ with MainForm do
 end;
 
 function SetCaption: String;
+var
+  ListBox: TListBox;
 begin
 with MainForm do
  begin
-  if eXoDOSSheet.Visible then
-  begin
-   if DosMainList.Items.Count <> -1 then
-   begin
-    Result :='Selected Dos Game : ['+IntToStr(DosMainList.ItemIndex+1)+' from '+IntToStr(DosMainList.Items.Count)+']';
-   end else
-    Result := 'Selected Dos Game : ['+IntToStr(0)+' from '+IntToStr(DosMainList.Items.Count)+']';
+  case PageControl.ActivePageIndex of
+  0: ListBox := DosMainList;
+  1: ListBox := Win3xMainList;
+  2: ListBox := ScummVMMainList;
   end;
-  if eXoWin3xSheet.Visible then
+
+  if PageControl.ActivePage.Visible then
   begin
-   if Win3xMainList.Items.Count <> -1 then
+   if ListBox.Items.Count <> -1 then
    begin
-    Result :='Selected Win3x Game : ['+IntToStr(Win3xMainList.ItemIndex+1)+' from '+IntToStr(Win3xMainList.Items.Count)+']';
+    Result :='Selected game : ['+IntToStr(ListBox.ItemIndex+1)+' from '+IntToStr(ListBox.Items.Count)+']';
    end else
-    Result := 'Selected Win3x Game : ['+IntToStr(0)+' from '+IntToStr(Win3xMainList.Items.Count)+']';
-  end;
-  if eXoScummVMSheet.Visible then
-  begin
-   if ScummVMMainList.Items.Count <> -1 then
-   begin
-    Result :='Selected ScummVM Game : ['+IntToStr(ScummVMMainList.ItemIndex+1)+' from '+IntToStr(ScummVMMainList.Items.Count)+']';
-   end else
-    Result := 'Selected ScummVM Game : ['+IntToStr(0)+' from '+IntToStr(ScummVMMainList.Items.Count)+']';
+    Result := 'Selected game : ['+IntToStr(0)+' from '+IntToStr(ListBox.Items.Count)+']';
   end;
   end;
 end;
@@ -236,7 +245,7 @@ with MainForm do
       if PageControl3.ActivePageIndex = 0 then
        begin
         MfStop;
-        PlaybackTimer.Enabled := False;
+        VideoEndTimer.Enabled := False;
        end else PageControl3.ActivePageIndex := 1;
      end;
 
@@ -286,31 +295,41 @@ var
   i: Integer;
   MenuItem: TMenuItem;
   MainDir: String;
+  ListBox: TListBox;
+  StringList1: TStringList;
+  StringList2: TStringList;
 begin
 with MainForm do
  begin
   ExtrassList.Clear;
   AMenu.Clear;
 
-  if eXoDOSSheet.Visible then
-  if not (DosMainList.Items.Count = -1) then
-  begin
-   SetCurrentDir(IncludeTrailingPathDelimiter(ExtractFileDir(DosPath[FindString(DosList,DosMainList.Items[DosMainList.ItemIndex])]))+'Extras');
-   MainDir := IncludeTrailingPathDelimiter(ExtractFileDir(DosPath[FindString(DosList,DosMainList.Items[DosMainList.ItemIndex])]))+'Extras';
+  case PageControl.ActivePageIndex of
+   0:
+    begin
+     ListBox := DosMainList;
+     StringList1 := DosPath;
+     StringList2 := DosList;
+    end;
+   1:
+    begin
+     ListBox := Win3xMainList;
+     StringList1 := Win3xPath;
+     StringList2 := Win3xList;
+    end;
+   2:
+    begin
+     ListBox := ScummVMMainList;
+     StringList1 := ScummVMPath;
+     StringList2 := ScummVMList;
+    end;
   end;
 
-  if eXoWin3xSheet.Visible then
-  if not (Win3xMainList.Items.Count = -1) then
+  if PageControl.ActivePage.Visible then
+  if not (ListBox.Items.Count = -1) then
   begin
-   SetCurrentDir(IncludeTrailingPathDelimiter(ExtractFileDir(Win3xPath[FindString(Win3xList,Win3xMainList.Items[Win3xMainList.ItemIndex])]))+'Extras');
-   MainDir := IncludeTrailingPathDelimiter(ExtractFileDir(Win3xPath[FindString(Win3xList,Win3xMainList.Items[Win3xMainList.ItemIndex])]))+'Extras';
-  end;
-
-  if eXoScummVMSheet.Visible then
-  if not (ScummVMMainList.Items.Count = -1) then
-  begin
-   SetCurrentDir(IncludeTrailingPathDelimiter(ExtractFileDir(ScummVMPath[FindString(ScummVMList,ScummVMMainList.Items[ScummVMMainList.ItemIndex])]))+'Extras');
-   MainDir := IncludeTrailingPathDelimiter(ExtractFileDir(ScummVMPath[FindString(ScummVMList,ScummVMMainList.Items[ScummVMMainList.ItemIndex])]))+'Extras';
+   SetCurrentDir(IncludeTrailingPathDelimiter(ExtractFileDir(StringList1[FindString(StringList2,ListBox.Items[ListBox.ItemIndex])]))+'Extras');
+   MainDir := IncludeTrailingPathDelimiter(ExtractFileDir(StringList1[FindString(StringList2,ListBox.Items[ListBox.ItemIndex])]))+'Extras';
   end;
 
   FindExtrasFile(MainDir, '*.bat', ExtrassList);
@@ -347,62 +366,42 @@ procedure TMainForm.PlayVideoOnClick;
 var
   Videos: TStringDynArray;
   VideoPath: String;
+  ListBox: TListBox;
+  VideoDir: String;
 begin
-if eXoDOSSheet.Visible then
- if DosMainList.ItemIndex <> -1 then
+  case PageControl.ActivePageIndex of
+   0:
+    begin
+     ListBox := DosMainList;
+     VideoDir := 'Videos\MS-DOS\Recordings';
+    end;
+   1:
+    begin
+     ListBox := Win3xMainList;
+     VideoDir := 'Videos\Windows 3x\Recordings';
+    end;
+   2:
+    begin
+     ListBox := ScummVMMainList;
+     VideoDir := 'Videos\ScummVM\Recordings';
+    end;
+  end;
+
+if PageControl.ActivePage.Visible then
+if ListBox.ItemIndex <> -1 then
  begin
-  if DirectoryExists(GetMainDir+'Videos\MS-DOS\Recordings') then
+  if DirectoryExists(GetMainDir+VideoDir) then
    begin
-    Videos := TDirectory.GetFiles(GetMainDir+'Videos\MS-DOS\Recordings', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
-    for VideoPath in Videos do MFPlay(AppHandle, VideoPath);
-    if FileExists(VideoPath) then
+    Videos := TDirectory.GetFiles(GetMainDir+VideoDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
+    for VideoPath in Videos do
+    if MFPlay(AppHandle, VideoPath) then
      begin
       PageControl3.ActivePageIndex := 0;
-      PlaybackTimer.Enabled := True;
-     end else
-    if not FileExists(VideoPath) then
-     begin
-      PlaybackTimer.Enabled := False;
-      MFStop;
-      PageControl3.ActivePageIndex := 1;
+      VideoEndTimer.Enabled := True;
      end;
-   end;
- end;
-if eXoWin3xSheet.Visible then
-if Win3xMainList.ItemIndex <> -1 then
- begin
-  if DirectoryExists(GetMainDir+'Videos\Windows 3x\Recordings') then
-   begin
-    Videos := TDirectory.GetFiles(GetMainDir+'Videos\Windows 3x\Recordings', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
-    for VideoPath in Videos do MFPlay(AppHandle, VideoPath);
-    if FileExists(VideoPath) then
+    if (MFPlay(AppHandle, VideoPath) = False) or not FileExists(VideoPath) then
      begin
-      PageControl3.ActivePageIndex := 0;
-      PlaybackTimer.Enabled := True;
-     end else
-    if not FileExists(VideoPath) then
-     begin
-      PlaybackTimer.Enabled := False;
-      MFStop;
-      PageControl3.ActivePageIndex := 1;
-     end;
-   end;
- end;
-if eXoScummVMSheet.Visible then
-if ScummVMMainList.ItemIndex <> -1 then
- begin
-  if DirectoryExists(GetMainDir+'Videos\ScummVM\Recordings') then
-   begin
-    Videos := TDirectory.GetFiles(GetMainDir+'Videos\ScummVM\Recordings', ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
-    for VideoPath in Videos do MFPlay(AppHandle, VideoPath);
-    if FileExists(VideoPath) then
-     begin
-      PageControl3.ActivePageIndex := 0;
-      PlaybackTimer.Enabled := True;
-     end else
-    if not FileExists(VideoPath) then
-     begin
-      PlaybackTimer.Enabled := False;
+      VideoEndTimer.Enabled := False;
       MFStop;
       PageControl3.ActivePageIndex := 1;
      end;
@@ -465,34 +464,41 @@ with MainForm do
 end;
 
 procedure MainListDblClick;
+var
+  ListBox: TListBox;
+  PathDir: String;
 begin
 with MainForm do
 begin
-if eXoDOSSheet.Visible then
-if DosMainList.ItemIndex <> -1 then
- begin
-  SetCurrentDir(ExtractFilePath(GetDosCurrentDir));
-  if RunApplication(GetDosCurrentDir, '') = True then StopVideoByTimer;
- end;
 
-if eXoWin3xSheet.Visible then
-if Win3xMainList.ItemIndex <> -1 then
- begin
-  SetCurrentDir(ExtractFilePath(GetWin3xCurrentDir));
-  if RunApplication(GetWin3xCurrentDir, '') = True then StopVideoByTimer;
- end;
+case PageControl.ActivePageIndex of
+   0:
+    begin
+     ListBox := DosMainList;
+     PathDir := GetDosCurrentDir;
+    end;
+   1:
+    begin
+     ListBox := Win3xMainList;
+     PathDir := GetWin3xCurrentDir;
+    end;
+   2:
+    begin
+     ListBox := ScummVMMainList;
+     PathDir := GetScummVMCurrentDir;
+    end;
+  end;
 
-if eXoScummVMSheet.Visible then
-if ScummVMMainList.ItemIndex <> -1 then
+if PageControl.ActivePage.Visible then
+if ListBox.ItemIndex <> -1 then
  begin
-  SetCurrentDir(ExtractFilePath(GetScummVMCurrentDir));
-  if RunApplication(GetScummVMCurrentDir, '') = True then StopVideoByTimer;
+  SetCurrentDir(ExtractFilePath(PathDir));
+  if RunApplication(PathDir, '') = True then StopVideoByTimer;
  end;
-
 end;
 end;
 
-//IniFile
+//IniFile//////////////////////////////////////////////////////////////////////
 
 function TMainForm.GetFConfig: TMemIniFile;
 begin
@@ -628,7 +634,7 @@ if Write = true then
  end;
 end;
 
-//TMainForm
+//TMainForm////////////////////////////////////////////////////////////////////
 
 procedure TMainForm.WMSize(var Msg: TMessage);
 begin
@@ -705,6 +711,7 @@ if LoadResourceFontByID(1, 'MYFONT') then
    FindEdit.Color := clBlack;
    FindEdit.Font.Color := clWhite;
    FindEdit.BorderStyle := bsNone;
+   FindEdit.Enabled := False;
 
    DosMainList.ParentFont := False;
    DosMainList.Font.Size := 12;
@@ -774,21 +781,6 @@ ExtrassList.Free;
 if PageControl2.Visible = True then MfDestroy;
 end;
 
-procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-if (Key=VK_UP) or (Key=VK_DOWN) or (Key=VK_LEFT) or (Key=VK_RIGHT) then IsArrowDown := True;
-if Key = VK_F1 then AboutHelp1Click(Sender);
-if Key = VK_F5 then AddGamesToList;
-if Key = VK_F11 then FullScreen1Click(Sender);
-if Key = VK_RETURN then MainListDblClick;
-if PageControl2.Visible = True then
- begin
-  if (ssCtrl in Shift) and (Key = $BD) then MFVolumeDOWN;
-  if (ssCtrl in Shift) and (Key = $BB) then MFVolumeUP;
- end;
-end;
-
 procedure TMainForm.FormPaint(Sender: TObject);
 begin
 Color := $00AA0000;
@@ -828,47 +820,44 @@ if isFullScreen = True then
 Repaint;
 end;
 
-//TListMenu
+//TListMenu////////////////////////////////////////////////////////////////////
 
 procedure TMainForm.ListMenuPopup(Sender: TObject);
 var
   Manuals: TStringDynArray;
-  ManualPath: String;
+  ManualPath, ManualPathDir: String;
+  ListBox: TListBox;
 begin
+  case PageControl.ActivePageIndex of
+  0:
+   begin
+    ListBox := DosMainList;
+    ManualPathDir := 'Manuals\MS-DOS';
+   end;
+  1:
+   begin
+    ListBox := Win3xMainList;
+    ManualPathDir := 'Manuals\Windows 3x';
+   end;
+  2:
+   begin
+    ListBox := ScummVMMainList;
+    ManualPathDir := 'Manuals';
+   end;
+  end;
+
 //by default manual menu is not enabled
 Manual1.Enabled := False;
 
 Launcherstate1.Items[LauncherState].Checked := True;
 
-if eXoDOSSheet.Visible then
- if DosMainList.ItemIndex <> -1 then
+if PageControl.ActivePage.Visible then
+ if ListBox.ItemIndex <> -1 then
  begin
   //add Aditional to menu
   ExtrasFileAdd(Extras1);
   //if Exists manual in dir to menu manual is enabled
-  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals\MS-DOS', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
-  for ManualPath in Manuals do
-  Manual1.Enabled := True;
- end;
-
-if eXoWin3xSheet.Visible then
- if Win3xMainList.ItemIndex <> -1 then
- begin
-  //add Aditional to menu
-  ExtrasFileAdd(Extras1);
-  //if Exists manual in dir to menu manual is enabled
-  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals\Windows 3x', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
-  for ManualPath in Manuals do
-  Manual1.Enabled := True;
- end;
-
-if eXoScummVMSheet.Visible then
- if ScummVMMainList.ItemIndex <> -1 then
- begin
-  //add Aditional to menu
-  ExtrasFileAdd(Extras1);
-  //if Exists manual in dir to menu manual is enabled
-  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals', ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  Manuals := TDirectory.GetFiles(GetMainDir+ManualPathDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do
   Manual1.Enabled := True;
  end;
@@ -880,26 +869,30 @@ end;
 procedure TMainForm.Manual1Click(Sender: TObject);
 var
   Manuals: TStringDynArray;
-  ManualPath: String;
+  ManualPath, ManualPathDir: String;
+  ListBox: TListBox;
 begin
-if eXoDOSSheet.Visible then
+  case PageControl.ActivePageIndex of
+  0:
+   begin
+    ListBox := DosMainList;
+    ManualPathDir := 'Manuals\MS-DOS';
+   end;
+  1:
+   begin
+    ListBox := Win3xMainList;
+    ManualPathDir := 'Manuals\Windows 3x';
+   end;
+  2:
+   begin
+    ListBox := ScummVMMainList;
+    ManualPathDir := 'Manuals';
+   end;
+  end;
+if PageControl.ActivePage.Visible then
  begin
   SetCurrentDir(GetMainDir);
-  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals\MS-DOS', DosMainList.Items[DosMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
-  for ManualPath in Manuals do
-  if RunApplication(ManualPath,'') = True then StopVideoByTimer;
- end;
-if eXoWin3xSheet.Visible then
- begin
-  SetCurrentDir(GetMainDir);
-  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals\Windows 3x', Win3xMainList.Items[Win3xMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
-  for ManualPath in Manuals do
-  if RunApplication(ManualPath,'') = True then StopVideoByTimer;
- end;
-if eXoScummVMSheet.Visible then
- begin
-  SetCurrentDir(GetMainDir);
-  Manuals := TDirectory.GetFiles(GetMainDir+'Manuals', ScummVMMainList.Items[ScummVMMainList.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  Manuals := TDirectory.GetFiles(GetMainDir+ManualPathDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do
   if RunApplication(ManualPath,'') = True then StopVideoByTimer;
  end;
@@ -911,29 +904,34 @@ MainListDblClick;
 end;
 
 procedure TMainForm.Install1Click(Sender: TObject);
+var
+  ListBox: TListBox;
+  InstallFileDir: String;
 begin
-if eXoDOSSheet.Visible then
+case PageControl.ActivePageIndex of
+   0:
+    begin
+     ListBox := DosMainList;
+     InstallFileDir := GetDosCurrentDir;
+    end;
+   1:
+    begin
+     ListBox := Win3xMainList;
+     InstallFileDir := GetWin3xCurrentDir;
+    end;
+   2:
+    begin
+     ListBox := ScummVMMainList;
+     InstallFileDir := GetScummVMCurrentDir;
+    end;
+  end;
+
+if PageControl.ActivePage.Visible then
  begin
-  if DosMainList.ItemIndex <> -1 then
+  if ListBox.ItemIndex <> -1 then
    begin
-    SetCurrentDir(ExtractFilePath(GetDosCurrentDir));
-    if RunApplication(ExtractFilePath(GetDosCurrentDir) + 'install.bat', '') = True then StopVideoByTimer;
-   end;
- end;
-if eXoWin3xSheet.Visible then
- begin
-  if Win3xMainList.ItemIndex <> -1 then
-   begin
-    SetCurrentDir(ExtractFilePath(GetWin3xCurrentDir));
-    if RunApplication(ExtractFilePath(GetWin3xCurrentDir) + 'install.bat', '') = True then StopVideoByTimer;
-   end;
- end;
-if eXoScummVMSheet.Visible then
- begin
-  if ScummVMMainList.ItemIndex <> -1 then
-   begin
-    SetCurrentDir(ExtractFilePath(GetScummVMCurrentDir));
-    if RunApplication(ExtractFilePath(GetScummVMCurrentDir) + 'install.bat', '') = True then StopVideoByTimer;
+    SetCurrentDir(ExtractFilePath(InstallFileDir));
+    if RunApplication(ExtractFilePath(InstallFileDir) + 'install.bat', '') = True then StopVideoByTimer;
    end;
  end;
 end;
@@ -965,12 +963,15 @@ procedure TMainForm.ExtrasMenuClick(Sender: TObject);
 var
   CaptionReplace: String;
 begin
+if PageControl.ActivePage.Visible then
+begin
 CaptionReplace := StringReplace(ExtrassList[FindMenuString(Extras1,TMenuItem(Sender).Caption)], '&', '', [rfReplaceAll]);
 if FileExists(CaptionReplace) then
  begin
   SetCurrentDir(ExtractFilePath(CaptionReplace));
   if RunApplication(CaptionReplace,'') = True then StopVideoByTimer;
  end;
+end;
 end;
 
 procedure TMainForm.none1Click(Sender: TObject);
@@ -1039,23 +1040,26 @@ end;
 
 procedure TMainForm.AboutHelp1Click(Sender: TObject);
 begin
-MessageBox(Handle,'doslauncher created for eXo Collections' +
+MessageBox(Handle,'doslauncher' +
                   #10 + #10 +
-                  'Site: github.com/gorbatiiivan/doslauncher'+
+                  'Link : github.com/gorbatiiivan/doslauncher'+
                   #10 + #10 +
                   'Compatible with eXoDOS V5,eXoWin3x,eXoScummVM' +
                   #10 + #10 +
                   '-- Keyboard shortcuts --' +
                   #10 +
                   #10 + 'Main shortcuts:' +
-                  #10 + '1. Ctrl -      | Volume Down' +
-                  #10 + '2. Ctrl +      | Volume UP' +
-                  #10 + '3. F5          | Scanning games list'+
-                  #10 + '4. Enter       | Run select game'+
-                  #10 + '5. F11         | FullScreen'+
+                  #10 + '1. Ctrl+Down      | Volume Down' +
+                  #10 + '2. Ctrl+Up        | Volume UP' +
+                  #10 + '3. Space          | Play/Pause video' +
+                  #10 + '4. F5             | Scanning games list'+
+                  #10 + '5. Enter          | Run select game'+
+                  #10 + '6. F11            | FullScreen'+
+                  #10 + '7. Ctrl+TAB       | Tab change'+
+                  #10 + '8. F3             | View manual'+
                   #10 +
                   #10 + 'Find box:'+
-                  #10 + 'Escape         | Clear find items'+
+                  #10 + 'Escape            | Clear find items'+
                   #10 + ''+
                   #10 + 'Video:'+
                   #10 + 'Press on the item in the list for replay video'+
@@ -1063,7 +1067,7 @@ MessageBox(Handle,'doslauncher created for eXo Collections' +
                   ,'About / Help',0);
 end;
 
-//TMainList
+//Other controls///////////////////////////////////////////////////////////////
 
 procedure TMainForm.TrayIconClick(Sender: TObject);
 begin
@@ -1145,6 +1149,12 @@ with (Control as TListBox).Canvas do
   end;
 end;
 
+procedure TMainForm.DosMainListKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+if (Key=VK_UP) or (Key=VK_DOWN) or (Key=VK_LEFT) or (Key=VK_RIGHT) then IsArrowDown := True;
+end;
+
 procedure TMainForm.DosMainListKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -1157,7 +1167,7 @@ begin
 if PageControl2.Visible = True then
 if PageControl3.ActivePageIndex = 0 then
  begin
-  PlaybackTimer.Enabled := False;
+  VideoEndTimer.Enabled := False;
   MfStop;
  end;
 
@@ -1253,6 +1263,8 @@ end;
 
 procedure TMainForm.FindEditChange(Sender: TObject);
 begin
+if PageControl.ActivePageIndex <> -1 then
+begin
 if eXoDOSSheet.Visible then
  FindListIndex(FindEdit.Text, DosMainList, DosList);
 if eXoWin3xSheet.Visible then
@@ -1262,7 +1274,8 @@ if eXoScummVMSheet.Visible then
 
 MainForm.Caption := SetCaption;
 TrayIcon.Hint := MainForm.Caption;
-SysLabel.Caption := MainForm.Caption; 
+SysLabel.Caption := MainForm.Caption;
+end;
 end;
 
 procedure TMainForm.FindEditContextPopup(Sender: TObject; MousePos: TPoint;
@@ -1276,11 +1289,9 @@ procedure TMainForm.FindEditKeyDown(Sender: TObject; var Key: Word;
 var
   Mgs: TMsg;
 begin
-if Key = VK_F5 then AddGamesToList;
 if Key = VK_RETURN then
  begin
   PeekMessage(Mgs, 0, WM_CHAR, WM_CHAR, PM_REMOVE);
-  MainListDblClick;
  end;
 if Key = VK_ESCAPE then
   begin
@@ -1289,12 +1300,12 @@ if Key = VK_ESCAPE then
   end;
 end;
 
-procedure TMainForm.PlaybackTimerTimer(Sender: TObject);
+procedure TMainForm.VideoEndTimerTimer(Sender: TObject);
 begin
 if MFIfStoping = True then
  begin
   PageControl3.ActivePageIndex := 1;
-  PlaybackTimer.Enabled := False;
+  VideoEndTimer.Enabled := False;
  end;
 end;
 
@@ -1329,4 +1340,50 @@ begin
 Handled := True;
 end;
 
+//ActionList///////////////////////////////////////////////////////////////////
+
+procedure TMainForm.ATabChangeExecute(Sender: TObject);
+begin
+if (MainForm.Caption <> 'Please wait...') then
+if (MainForm.Caption <> '')  then
+PageControl.SelectNextPage(True,True);
+end;
+
+procedure TMainForm.AAboutExecute(Sender: TObject);
+begin
+AboutHelp1Click(Sender);
+end;
+
+procedure TMainForm.AScanExecute(Sender: TObject);
+begin
+AddGamesToList;
+end;
+
+procedure TMainForm.AFullScreenExecute(Sender: TObject);
+begin
+FullScreen1Click(Sender);
+end;
+
+procedure TMainForm.APlayPauseExecute(Sender: TObject);
+begin
+if PageControl2.ActivePageIndex = 1 then
+if MFIfStoping = False then MFPause else PlayVideoOnClick;
+end;
+
+procedure TMainForm.ADblClickonListBoxExecute(Sender: TObject);
+begin
+if PageControl.ActivePageIndex <> -1 then MainListDblClick;
+end;
+
+procedure TMainForm.AVolDownExecute(Sender: TObject);
+begin
+MFVolumeDOWN;
+end;
+
+procedure TMainForm.AVolUPExecute(Sender: TObject);
+begin
+MFVolumeUP;
+end;
+
+///////////////////////////////////////////////////////////////////////////////
 end.

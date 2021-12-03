@@ -16,7 +16,6 @@ object MainForm: TMainForm
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnKeyDown = FormKeyDown
   OnPaint = FormPaint
   OnResize = FormResize
   PixelsPerInch = 96
@@ -38,7 +37,7 @@ object MainForm: TMainForm
     BevelInner = bvNone
     BevelOuter = bvNone
     Color = clBlack
-    TabOrder = 0
+    TabOrder = 1
     StyleElements = []
     OnChange = FindEditChange
     OnContextPopup = FindEditContextPopup
@@ -50,7 +49,7 @@ object MainForm: TMainForm
     Width = 576
     Height = 548
     BevelOuter = bvNone
-    TabOrder = 1
+    TabOrder = 0
     object MainSplitter: TSplitter
       AlignWithMargins = True
       Left = 497
@@ -106,7 +105,7 @@ object MainForm: TMainForm
           OnClick = DosMainListClick
           OnDblClick = DosMainListDblClick
           OnDrawItem = DosMainListDrawItem
-          OnKeyDown = FormKeyDown
+          OnKeyDown = DosMainListKeyDown
           OnKeyUp = DosMainListKeyUp
           OnMouseDown = DosMainListMouseDown
         end
@@ -135,7 +134,7 @@ object MainForm: TMainForm
           OnClick = DosMainListClick
           OnDblClick = DosMainListDblClick
           OnDrawItem = DosMainListDrawItem
-          OnKeyDown = FormKeyDown
+          OnKeyDown = DosMainListKeyDown
           OnKeyUp = DosMainListKeyUp
           OnMouseDown = DosMainListMouseDown
         end
@@ -164,7 +163,7 @@ object MainForm: TMainForm
           OnClick = DosMainListClick
           OnDblClick = DosMainListDblClick
           OnDrawItem = DosMainListDrawItem
-          OnKeyDown = FormKeyDown
+          OnKeyDown = DosMainListKeyDown
           OnKeyUp = DosMainListKeyUp
           OnMouseDown = DosMainListMouseDown
         end
@@ -236,7 +235,6 @@ object MainForm: TMainForm
           TabOrder = 0
           StyleElements = [seBorder]
           OnContextPopup = NotesBoxContextPopup
-          OnKeyDown = FormKeyDown
         end
         object PageControl3: TPageControl
           Left = 0
@@ -352,6 +350,7 @@ object MainForm: TMainForm
     end
     object Manual1: TMenuItem
       Caption = 'View Manual'
+      ShortCut = 114
       OnClick = Manual1Click
     end
     object N4: TMenuItem
@@ -470,10 +469,10 @@ object MainForm: TMainForm
       OnClick = Exit1Click
     end
   end
-  object PlaybackTimer: TTimer
+  object VideoEndTimer: TTimer
     Enabled = False
     Interval = 2000
-    OnTimer = PlaybackTimerTimer
+    OnTimer = VideoEndTimerTimer
     Left = 20
     Top = 387
   end
@@ -482,5 +481,54 @@ object MainForm: TMainForm
     OnTimer = TimerOnClickTimer
     Left = 20
     Top = 339
+  end
+  object ActionList: TActionList
+    Left = 20
+    Top = 291
+    object ATabChange: TAction
+      Caption = 'TTab'
+      ShortCut = 16393
+      OnExecute = ATabChangeExecute
+    end
+    object AAbout: TAction
+      Caption = 'AAbout'
+      ShortCut = 112
+      OnExecute = AAboutExecute
+    end
+    object AScan: TAction
+      Caption = 'AScan'
+      ShortCut = 116
+      OnExecute = AScanExecute
+    end
+    object AFullScreen: TAction
+      Caption = 'AFullScreen'
+      ShortCut = 122
+      OnExecute = AFullScreenExecute
+    end
+    object ADblClickonListBox: TAction
+      Caption = 'ADblClickonListBox'
+      ShortCut = 13
+      OnExecute = ADblClickonListBoxExecute
+    end
+    object AVolDown: TAction
+      Caption = 'AVolDown'
+      ShortCut = 16424
+      OnExecute = AVolDownExecute
+    end
+    object AVolUP: TAction
+      Caption = 'AVolUP'
+      ShortCut = 16422
+      OnExecute = AVolUPExecute
+    end
+    object APlayPause: TAction
+      Caption = 'APlayPause'
+      ShortCut = 32
+      OnExecute = APlayPauseExecute
+    end
+    object AManualView: TAction
+      Caption = 'AManualView'
+      ShortCut = 114
+      OnExecute = Manual1Click
+    end
   end
 end
