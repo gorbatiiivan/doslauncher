@@ -25,7 +25,7 @@ type
   procedure OnMediaItemCreated(pEvent: PMFP_MEDIAITEM_CREATED_EVENT);
   procedure OnMediaItemSet(pEvent: PMFP_MEDIAITEM_SET_EVENT);
   function PlayMediaFile(const hApp: HWND; const sURL: LPCWSTR): HResult;
-  function MFPlay(MFHandle: THandle; FilePath: String): Boolean;
+  procedure MFPlay(MFHandle: THandle; FilePath: String);
   procedure MFStop;
   procedure MFPause;
   function MFIfStoping: Boolean;
@@ -126,22 +126,16 @@ done:
   Result := hr;
 end;
 
-function MFPlay(MFHandle: THandle; FilePath: String): Boolean;
+procedure MFPlay(MFHandle: THandle; FilePath: String);
 var
   hr: HResult;
   pwszFilePath: PWideChar;
 begin
-  Result := False;
   hr := S_OK;
   pwszFilePath := PWideChar(FilePath);
   hr := PlayMediaFile(MFHandle, pwszFilePath);
   hr := g_pPlayer.SetVolume(MainForm.FConfig.ReadFloat('General','Volume',1));
-  Result := True;
-  if Failed(hr) then
-   begin
-    Result := False;
-    Exit;
-   end;
+  if Failed(hr) then Exit;
 end;
 
 procedure MFStop;

@@ -394,12 +394,12 @@ if ListBox.ItemIndex <> -1 then
    begin
     Videos := TDirectory.GetFiles(GetMainDir+VideoDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
     for VideoPath in Videos do
-    if MFPlay(AppHandle, VideoPath) then
      begin
+      MFPlay(AppHandle, VideoPath);
       PageControl3.ActivePageIndex := 0;
       VideoEndTimer.Enabled := True;
      end;
-    if (MFPlay(AppHandle, VideoPath) = False) or not FileExists(VideoPath) then
+    if not FileExists(VideoPath) then
      begin
       VideoEndTimer.Enabled := False;
       MFStop;
