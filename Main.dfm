@@ -70,7 +70,7 @@ object MainForm: TMainForm
       Top = 0
       Width = 497
       Height = 548
-      ActivePage = eXoDOSSheet
+      ActivePage = FavSheet
       Align = alLeft
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -84,6 +84,7 @@ object MainForm: TMainForm
       OnChange = PageControlChange
       object eXoDOSSheet: TTabSheet
         Caption = 'DOS'
+        ImageIndex = -1
         object DosMainList: TListBox
           Left = 0
           Top = 0
@@ -112,7 +113,7 @@ object MainForm: TMainForm
       end
       object eXoWin3xSheet: TTabSheet
         Caption = 'Win3x'
-        ImageIndex = 1
+        ImageIndex = -1
         object Win3xMainList: TListBox
           Left = 0
           Top = 0
@@ -141,8 +142,36 @@ object MainForm: TMainForm
       end
       object eXoScummVMSheet: TTabSheet
         Caption = 'ScummVM'
-        ImageIndex = 2
+        ImageIndex = -1
         object ScummVMMainList: TListBox
+          Left = 0
+          Top = 0
+          Width = 489
+          Height = 514
+          Style = lbOwnerDrawFixed
+          Align = alClient
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ItemHeight = 22
+          ParentFont = False
+          Sorted = True
+          TabOrder = 0
+          StyleElements = [seFont, seBorder]
+          OnClick = DosMainListClick
+          OnDblClick = DosMainListDblClick
+          OnDrawItem = DosMainListDrawItem
+          OnKeyDown = DosMainListKeyDown
+          OnKeyUp = DosMainListKeyUp
+          OnMouseDown = DosMainListMouseDown
+        end
+      end
+      object FavSheet: TTabSheet
+        Caption = 'Favorit'
+        object FavMainList: TListBox
           Left = 0
           Top = 0
           Width = 489
@@ -241,7 +270,7 @@ object MainForm: TMainForm
           Top = 272
           Width = 68
           Height = 241
-          ActivePage = VideoSheet
+          ActivePage = CoverSheet
           Align = alClient
           TabOrder = 1
           object VideoSheet: TTabSheet
@@ -346,6 +375,13 @@ object MainForm: TMainForm
       Caption = 'Aditional launch'
     end
     object N5: TMenuItem
+      Caption = '-'
+    end
+    object Addtofavorit1: TMenuItem
+      Caption = 'Add to favorit'
+      OnClick = Addtofavorit1Click
+    end
+    object N12: TMenuItem
       Caption = '-'
     end
     object Manual1: TMenuItem

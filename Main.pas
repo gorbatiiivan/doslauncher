@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls,
   IniFiles, Vcl.ComCtrls, IOUtils, Types, Vcl.ExtCtrls, Vcl.Buttons,
-  System.Actions, Vcl.ActnList;
+  System.Actions, Vcl.ActnList, System.ImageList, Vcl.ImgList, StrUtils;
 
 const
   TIMER1 = 1;
@@ -84,6 +84,10 @@ type
     AVolUP: TAction;
     APlayPause: TAction;
     AManualView: TAction;
+    FavSheet: TTabSheet;
+    FavMainList: TListBox;
+    N12: TMenuItem;
+    Addtofavorit1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure DosMainListMouseDown(Sender: TObject; Button: TMouseButton;
@@ -134,6 +138,7 @@ type
     procedure DosMainListKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure APlayPauseExecute(Sender: TObject);
+    procedure Addtofavorit1Click(Sender: TObject);
   private
     { Private declarations }
     IsArrowDown: Boolean;
@@ -160,7 +165,8 @@ var
   ScummVMList: TStringList;
   ScummVMPath: TStringList;
   ExtrassList: TStringList;
-  DOSIndex, Win3xIndex, ScummVMIndex: String;
+  FavPath: TStringList;
+  DOSIndex, Win3xIndex, ScummVMIndex, FavIndex: String;
   AppHandle: HWND;
   LauncherState: Integer = 0;
   isFullScreen: Boolean = False;
@@ -212,6 +218,7 @@ with MainForm do
   0: ListBox := DosMainList;
   1: ListBox := Win3xMainList;
   2: ListBox := ScummVMMainList;
+  3: ListBox := FavMainList;
   end;
 
   if PageControl.ActivePage.Visible then
@@ -294,7 +301,7 @@ procedure ExtrasFileAdd(AMenu: TMenuItem);
 var
   i: Integer;
   MenuItem: TMenuItem;
-  MainDir: String;
+  MainDir, TempString: String;
   ListBox: TListBox;
   StringList1: TStringList;
   StringList2: TStringList;
@@ -322,6 +329,25 @@ with MainForm do
      ListBox := ScummVMMainList;
      StringList1 := ScummVMPath;
      StringList2 := ScummVMList;
+    end;
+   3:
+    begin
+     ListBox := FavMainList;
+     if ContainsText(FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],''), '!dos') then
+     begin
+      StringList1 := DosPath;
+      StringList2 := DosList;
+     end else
+     if ContainsText(FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],''), '!win3x') then
+     begin
+      StringList1 := Win3xPath;
+      StringList2 := Win3xList;
+     end else
+     if ContainsText(FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],''), '!ScummVM') then
+     begin
+      StringList1 := ScummVMPath;
+     StringList2 := ScummVMList;
+     end;
     end;
   end;
 
@@ -385,6 +411,17 @@ begin
      ListBox := ScummVMMainList;
      VideoDir := 'Videos\ScummVM\Recordings';
     end;
+   3:
+    begin
+     ListBox := FavMainList;
+     if ListBox.ItemIndex <> -1 then
+     if ContainsText(FConfig.ReadString('Favorit',ListBox.Items[ListBox.ItemIndex],''), '!dos') then
+     VideoDir := 'Videos\MS-DOS\Recordings' else
+     if ContainsText(FConfig.ReadString('Favorit',ListBox.Items[ListBox.ItemIndex],''), '!win3x') then
+     VideoDir := 'Videos\Windows 3x\Recordings' else
+     if ContainsText(FConfig.ReadString('Favorit',ListBox.Items[ListBox.ItemIndex],''), '!ScummVM') then
+     VideoDir := 'Videos\ScummVM\Recordings';
+    end;
   end;
 
 if PageControl.ActivePage.Visible then
@@ -395,9 +432,9 @@ if ListBox.ItemIndex <> -1 then
     Videos := TDirectory.GetFiles(GetMainDir+VideoDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
     for VideoPath in Videos do
      begin
-      MFPlay(AppHandle, VideoPath);
       PageControl3.ActivePageIndex := 0;
       VideoEndTimer.Enabled := True;
+      MFPlay(AppHandle, VideoPath);
      end;
     if not FileExists(VideoPath) then
      begin
@@ -406,6 +443,11 @@ if ListBox.ItemIndex <> -1 then
       PageControl3.ActivePageIndex := 1;
      end;
    end;
+ end else
+ begin
+  VideoEndTimer.Enabled := False;
+  MFStop;
+  PageControl3.ActivePageIndex := 1;
  end;
 end;
 
@@ -414,6 +456,19 @@ begin
 with MainForm do
  begin
    NotesBox.Lines.Text := '';
+
+   if FavSheet.Visible then
+   if FavMainList.ItemIndex <> -1 then
+    begin
+     FavIndex := FavMainList.Items[FavMainList.ItemIndex];
+     //if extended version
+     if PageControl2.Visible = True then
+      begin
+       if PageControl2.ActivePageIndex = 0 then PageControl2.ActivePageIndex := 1;
+       //get notes
+       FavNotesToStream(FavMainList.Items[FavMainList.ItemIndex],NotesBox,FConfig,True);
+      end;
+    end else if PageControl2.Visible = True then PageControl2.ActivePageIndex := 0;
 
    if eXoDOSSheet.Visible then
    if DosMainList.ItemIndex <> -1 then
@@ -486,6 +541,12 @@ case PageControl.ActivePageIndex of
     begin
      ListBox := ScummVMMainList;
      PathDir := GetScummVMCurrentDir;
+    end;
+   3:
+    begin
+     ListBox := FavMainList;
+     if ListBox.ItemIndex <> -1 then
+     PathDir := FConfig.ReadString('Favorit',ListBox.Items[ListBox.ItemIndex],'');
     end;
   end;
 
@@ -734,6 +795,13 @@ if LoadResourceFontByID(1, 'MYFONT') then
    ScummVMMainList.Color := $00AA0000;
    ScummVMMainList.Font.Color := $00FFFF55;
 
+   FavMainList.ParentFont := False;
+   FavMainList.Font.Size := 12;
+   FavMainList.Font.Name := 'Modern DOS 8x16';
+   FavMainList.ParentColor := True;
+   FavMainList.Color := $00AA0000;
+   FavMainList.Font.Color := $00FFFF55;
+
    PageControl.ParentFont := False;
    PageControl.Font.Size := 12;
    PageControl.Font.Name := 'Modern DOS 8x16';
@@ -748,6 +816,7 @@ Win3xPath := TStringList.Create;
 ScummVMList := TStringList.Create;
 ScummVMPath := TStringList.Create;
 ExtrassList := TStringList.Create;
+FavPath := TStringList.Create;
 SetTimer(Handle,TIMER1,1000,@TimerCallBack1);
 
 //mfplayer
@@ -778,6 +847,7 @@ Win3xPath.Free;
 ScummVMList.Free;
 ScummVMPath.Free;
 ExtrassList.Free;
+FavPath.Free;
 if PageControl2.Visible = True then MfDestroy;
 end;
 
@@ -812,7 +882,7 @@ cmdlabel.SetBounds(8,ClientHeight -20, cmdlabel.Width, cmdlabel.Height);
 FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18);
 if isFullScreen = True then
  begin
-  SysPanel.SetBounds(280,1,MainPanel.Width - 282, SysPanel.Height);
+  SysPanel.SetBounds(354,1,MainPanel.Width - 356, SysPanel.Height);
   CloseButton.Left := SysPanel.Width - 24;
   MinButton.Left := SysPanel.Width - 50;
   SysLabel.SetBounds(2,0, SysPanel.Width-100, SysLabel.Height);
@@ -844,6 +914,11 @@ begin
     ListBox := ScummVMMainList;
     ManualPathDir := 'Manuals';
    end;
+  3:
+   begin
+    ListBox := FavMainList;
+    ManualPathDir := 'Manuals';
+   end;
   end;
 
 //by default manual menu is not enabled
@@ -856,6 +931,9 @@ if PageControl.ActivePage.Visible then
  begin
   //add Aditional to menu
   ExtrasFileAdd(Extras1);
+  //if exists game in favorit then caption change
+  if FConfig.ValueExists('FavoritNotes',ListBox.Items[ListBox.ItemIndex]) then
+  Addtofavorit1.Caption := 'Remove form favorit' else Addtofavorit1.Caption := 'Add to favorit';
   //if Exists manual in dir to menu manual is enabled
   Manuals := TDirectory.GetFiles(GetMainDir+ManualPathDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do
@@ -886,6 +964,11 @@ begin
   2:
    begin
     ListBox := ScummVMMainList;
+    ManualPathDir := 'Manuals';
+   end;
+  3:
+   begin
+    ListBox := FavMainList;
     ManualPathDir := 'Manuals';
    end;
   end;
@@ -923,6 +1006,11 @@ case PageControl.ActivePageIndex of
     begin
      ListBox := ScummVMMainList;
      InstallFileDir := GetScummVMCurrentDir;
+    end;
+   3:
+    begin
+     ListBox := FavMainList;
+     InstallFileDir := FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],'');
     end;
   end;
 
@@ -1067,6 +1155,58 @@ MessageBox(Handle,'doslauncher' +
                   ,'About / Help',0);
 end;
 
+procedure TMainForm.Addtofavorit1Click(Sender: TObject);
+var
+  ListBox: TListBox;
+  PathDir: String;
+begin
+case PageControl.ActivePageIndex of
+   0:
+    begin
+     ListBox := DosMainList;
+     PathDir := GetDosCurrentDir;
+    end;
+   1:
+    begin
+     ListBox := Win3xMainList;
+     PathDir := GetWin3xCurrentDir;
+    end;
+   2:
+    begin
+     ListBox := ScummVMMainList;
+     PathDir := GetScummVMCurrentDir;
+    end;
+   3:
+    begin
+     ListBox := FavMainList;
+    end;
+  end;
+if not FConfig.ValueExists('FavoritNotes',ListBox.Items[ListBox.ItemIndex]) then
+ begin
+  FConfig.WriteString('Favorit',ListBox.Items[ListBox.ItemIndex],PathDir);
+  FavNotesToStream(ListBox.Items[ListBox.ItemIndex],NotesBox,FConfig,False);
+ end else
+ begin
+  FConfig.DeleteKey('Favorit',ListBox.Items[ListBox.ItemIndex]);
+  FConfig.DeleteKey('FavoritNotes',ListBox.Items[ListBox.ItemIndex]);
+  if PageControl.ActivePageIndex = 3 then
+   begin
+    ListBox.Items.Delete(FindListBoxString(ListBox,ListBox.Items[ListBox.ItemIndex]));
+    if ListBox.Items.Count = -1 then
+     begin
+      ListBox.ItemIndex := 0;
+      ActiveListOnClick;
+     end else
+     begin
+      MfStop;
+      ListBox.ItemIndex := -1;
+      PageControl2.ActivePageIndex := 0;
+     end;
+   end;
+ end;
+FConfig.UpdateFile;
+end;
+
 //Other controls///////////////////////////////////////////////////////////////
 
 procedure TMainForm.TrayIconClick(Sender: TObject);
@@ -1088,6 +1228,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Open1.Enabled := True;
   Install1.Enabled := True;
   Extras1.Enabled := True;
+  Addtofavorit1.Enabled := True;
   if ExistsGameDir('eXoDOS') then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   FullScreen1.Checked := isFullScreen;
@@ -1098,6 +1239,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Open1.Enabled := False;
   Install1.Enabled := False;
   Extras1.Enabled := False;
+  Addtofavorit1.Enabled := False;
   if ExistsGameDir('eXoDOS') then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   FullScreen1.Checked := isFullScreen;
@@ -1152,13 +1294,15 @@ end;
 procedure TMainForm.DosMainListKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-if (Key=VK_UP) or (Key=VK_DOWN) or (Key=VK_LEFT) or (Key=VK_RIGHT) then IsArrowDown := True;
+if (Key=VK_UP) or (Key=VK_DOWN) or (Key=VK_LEFT) or (Key=VK_RIGHT)
+or (Key=VK_HOME) or (Key=VK_END)or (Key=VK_PRIOR)or (Key=VK_NEXT) then IsArrowDown := True;
 end;
 
 procedure TMainForm.DosMainListKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-if (Key=VK_UP) or (Key=VK_DOWN) or (Key=VK_LEFT) or (Key=VK_RIGHT) then IsArrowDown := False;
+if (Key=VK_UP) or (Key=VK_DOWN) or (Key=VK_LEFT) or (Key=VK_RIGHT)
+or (Key=VK_HOME) or (Key=VK_END)or (Key=VK_PRIOR)or (Key=VK_NEXT) then IsArrowDown := True;
 end;
 
 procedure TMainForm.PageControlChange(Sender: TObject);
@@ -1169,6 +1313,32 @@ if PageControl3.ActivePageIndex = 0 then
  begin
   VideoEndTimer.Enabled := False;
   MfStop;
+ end;
+
+if FConfig.SectionExists('Favorit') then
+if FavSheet.Visible then
+ begin
+  FavMainList.Items.Clear;
+  FConfig.ReadSection('Favorit', FavMainList.Items);
+  ActiveControl := FavMainList;
+  if FavMainList.Count <> -1 then
+   begin
+    if FavIndex = '' then FavMainList.ItemIndex := 0 else
+      begin
+       FavMainList.ItemIndex := FindListBoxString(FavMainList,FavIndex);
+       SendMessage(FavMainList.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
+      end;
+   end;
+   //if launcher state: extended then page visible
+  if PageControl2.Visible = True then
+   begin
+    //load image
+    LoadPNGImageFromRes('fav',ImageBox);
+    LoadPNGImageFromRes('fav',CoverImage);
+    ImageBox.Proportional := True;
+    ImageBox.Stretch := False;
+    PageControl3.ActivePageIndex := 1;
+   end;
  end;
 
 if ExistsGameDir('eXoDOS') then
@@ -1190,6 +1360,8 @@ if eXoDOSSheet.Visible then
     //load image
     LoadImageFromRes('exodos',ImageBox);
     LoadImageFromRes('exodos',CoverImage);
+    ImageBox.Proportional := False;
+    ImageBox.Stretch := True;
     PageControl3.ActivePageIndex := 1;
     //load notes
     if FileExists(GetMainDir+'Data\Platforms\MS-DOS.xml') then
@@ -1216,6 +1388,8 @@ if eXoWin3xSheet.Visible then
     //load image
     LoadImageFromRes('exowin3x',ImageBox);
     LoadImageFromRes('exowin3x',CoverImage);
+    ImageBox.Proportional := False;
+    ImageBox.Stretch := True;
     PageControl3.ActivePageIndex := 1;
     //load notes
     if FileExists(GetMainDir+'Data\Platforms\Windows 3x.xml') then
@@ -1242,6 +1416,8 @@ if eXoScummVMSheet.Visible then
     //load image
     LoadImageFromRes('scummvm',ImageBox);
     LoadImageFromRes('scummvm',CoverImage);
+    ImageBox.Proportional := False;
+    ImageBox.Stretch := True;
     PageControl3.ActivePageIndex := 1;
     //load notes
     if FileExists(GetMainDir+'Data\Platforms\ScummVM.xml') then
@@ -1271,6 +1447,11 @@ if eXoWin3xSheet.Visible then
  FindListIndex(FindEdit.Text, Win3xMainList, Win3xList);
 if eXoScummVMSheet.Visible then
  FindListIndex(FindEdit.Text, ScummVMMainList, ScummVMList);
+if FavSheet.Visible then
+ begin
+  FConfig.ReadSection('Favorit',FavPath);
+  FindListIndex(FindEdit.Text, FavMainList, FavPath);
+ end;
 
 MainForm.Caption := SetCaption;
 TrayIcon.Hint := MainForm.Caption;

@@ -3,11 +3,12 @@
 interface
 
 uses Winapi.Windows, Winapi.Messages, Forms, System.SysUtils, Vcl.StdCtrls, System.Classes, ShellAPI,
-     Vcl.Imaging.jpeg, Vcl.ExtCtrls, Vcl.Menus, Masks;
+     Vcl.Imaging.jpeg, Vcl.ExtCtrls, Vcl.Menus, Masks, IniFiles, PngImage;
 
 
 function LoadResourceFontByID( ResourceID : Integer; ResType: PChar ) : Boolean;
 procedure LoadImageFromRes(ResName: String; Image: TImage);
+procedure LoadPNGImageFromRes(ResName: String; Image: TImage);
 function FindString(List: TStringList; s: string): Integer;
 function FindListBoxString(List: TListBox; s: string): Integer;
 function FindMenuString(List: TMenuItem; s: string): Integer;
@@ -23,6 +24,7 @@ function GetMainDir: String;
 function GetNotesList(const AFileName: string): AnsiString;
 function StrCut(GameName, SourceString, StartStr, EndStr:String):String;
 function GetNotes(GameName, SourceMemo: String): String;
+procedure FavNotesToStream(GameName: String;Memo: TMemo;Config: TMemIniFile;Load: Boolean);
 
 implementation
 
@@ -55,6 +57,25 @@ begin
     end;
   finally
     JPGImage.Free;
+  end;
+end;
+
+procedure LoadPNGImageFromRes(ResName: String; Image: TImage);
+var
+  RS: TResourceStream;
+  PNGImage: TPNGImage;
+begin
+  PNGImage := TPNGImage.Create;
+  try
+    RS := TResourceStream.Create(hInstance, ResName, RT_RCDATA);
+    try
+      PNGImage.LoadFromStream(RS);
+      Image.Picture.Graphic := PNGImage;
+    finally
+      RS.Free;
+    end;
+  finally
+   PNGImage.Free;
   end;
 end;
 
@@ -258,6 +279,30 @@ begin
   #10+'Series '+StrCut(GameName,SourceMemo,'<Series>','</Series>')+
   #10+'PlayMode '+StrCut(GameName,SourceMemo,'<PlayMode>','</PlayMode>')+
   #10 + #10 + StrCut(GameName,SourceMemo,'<Notes>','</Notes>');
+end;
+
+procedure FavNotesToStream(GameName: String;Memo: TMemo;Config: TMemIniFile;Load: Boolean);
+var
+ MemoryOut: TMemoryStream;
+begin
+MemoryOut := TMemoryStream.Create;
+ try
+  if Load = False then
+   begin
+    Memo.Lines.SaveToStream(MemoryOut);
+    MemoryOut.Position := 0;
+    Config.WriteBinaryStream('FavoritNotes',GameName,MemoryOut);
+    Config.UpdateFile;
+   end
+  else
+  if Load = True then
+   begin
+    Config.ReadBinaryStream('FavoritNotes',GameName,MemoryOut);
+    Memo.Lines.LoadFromStream(MemoryOut);
+   end;
+ finally
+  MemoryOut.Free;
+ end;
 end;
 
 end.
