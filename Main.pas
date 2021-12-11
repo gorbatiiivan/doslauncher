@@ -88,6 +88,12 @@ type
     FavMainList: TListBox;
     N12: TMenuItem;
     Addtofavorit1: TMenuItem;
+    N13: TMenuItem;
+    Aditional1: TMenuItem;
+    Createdeskopshortcut1: TMenuItem;
+    Createdesktoptabshortcut1: TMenuItem;
+    Desktopshortcut1: TMenuItem;
+    N14: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure DosMainListMouseDown(Sender: TObject; Button: TMouseButton;
@@ -139,6 +145,8 @@ type
       Shift: TShiftState);
     procedure APlayPauseExecute(Sender: TObject);
     procedure Addtofavorit1Click(Sender: TObject);
+    procedure Createdeskopshortcut1Click(Sender: TObject);
+    procedure Createdesktoptabshortcut1Click(Sender: TObject);
   private
     { Private declarations }
     IsArrowDown: Boolean;
@@ -346,7 +354,7 @@ with MainForm do
      if ContainsText(FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],''), '!ScummVM') then
      begin
       StringList1 := ScummVMPath;
-     StringList2 := ScummVMList;
+      StringList2 := ScummVMList;
      end;
     end;
   end;
@@ -424,26 +432,25 @@ begin
     end;
   end;
 
-if PageControl.ActivePage.Visible then
 if ListBox.ItemIndex <> -1 then
  begin
   if DirectoryExists(GetMainDir+VideoDir) then
    begin
     Videos := TDirectory.GetFiles(GetMainDir+VideoDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
-    for VideoPath in Videos do
-     begin
-      PageControl3.ActivePageIndex := 0;
-      VideoEndTimer.Enabled := True;
-      MFPlay(AppHandle, VideoPath);
-     end;
     if not FileExists(VideoPath) then
      begin
       VideoEndTimer.Enabled := False;
       MFStop;
       PageControl3.ActivePageIndex := 1;
      end;
+    for VideoPath in Videos do
+     begin
+      PageControl3.ActivePageIndex := 0;
+      VideoEndTimer.Enabled := True;
+      MFPlay(AppHandle, VideoPath);
+     end;
    end;
- end else
+ end else //daca se apasa nu pe item
  begin
   VideoEndTimer.Enabled := False;
   MFStop;
@@ -466,6 +473,7 @@ with MainForm do
       begin
        if PageControl2.ActivePageIndex = 0 then PageControl2.ActivePageIndex := 1;
        //get notes
+       if FConfig.ValueExists('FavoritNotes',FavMainList.Items[FavMainList.ItemIndex]) then
        FavNotesToStream(FavMainList.Items[FavMainList.ItemIndex],NotesBox,FConfig,True);
       end;
     end else if PageControl2.Visible = True then PageControl2.ActivePageIndex := 0;
@@ -1198,6 +1206,7 @@ if not FConfig.ValueExists('FavoritNotes',ListBox.Items[ListBox.ItemIndex]) then
       ActiveListOnClick;
      end else
      begin
+      VideoEndTimer.Enabled := False;
       MfStop;
       ListBox.ItemIndex := -1;
       PageControl2.ActivePageIndex := 0;
@@ -1205,6 +1214,62 @@ if not FConfig.ValueExists('FavoritNotes',ListBox.Items[ListBox.ItemIndex]) then
    end;
  end;
 FConfig.UpdateFile;
+end;
+
+procedure TMainForm.Createdeskopshortcut1Click(Sender: TObject);
+var
+  ListBox: TListBox;
+  TargetName: String;
+begin
+case PageControl.ActivePageIndex of
+   0:
+    begin
+     ListBox := DosMainList;
+     TargetName := GetDosCurrentDir;
+    end;
+   1:
+    begin
+     ListBox := Win3xMainList;
+     TargetName := GetWin3xCurrentDir;
+    end;
+   2:
+    begin
+     ListBox := ScummVMMainList;
+     TargetName := GetScummVMCurrentDir;
+    end;
+   3:
+    begin
+     ListBox := FavMainList;
+     TargetName := FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],'');
+    end;
+  end;
+if CreateDesktopShellLink(GetDesktopFolder, TargetName) then
+ShowMessage('Link has been created ...');
+end;
+
+procedure TMainForm.Createdesktoptabshortcut1Click(Sender: TObject);
+var
+  ListBox: TListBox;
+  TargetName, NewDir: String;
+  i: Integer;
+begin
+case PageControl.ActivePageIndex of
+   0: ListBox := DosMainList;
+   1: ListBox := Win3xMainList;
+   2: ListBox := ScummVMMainList;
+   3: ListBox := FavMainList;
+  end;
+for i := 0 to ListBox.Items.Count-1 do
+ begin
+  NewDir := GetDesktopFolder +'\'+PageControl.Pages[PageControl.ActivePageIndex].Caption;
+  CreateDir(NewDir);
+  case PageControl.ActivePageIndex of
+  0: CreateDesktopShellLink(NewDir + '\', DosPath[FindString(DosList,DosMainList.Items[I])]);
+  1: CreateDesktopShellLink(NewDir + '\', Win3xPath[FindString(Win3xList,Win3xMainList.Items[I])]);
+  2: CreateDesktopShellLink(NewDir + '\', ScummVMPath[FindString(ScummVMList,ScummVMMainList.Items[I])]);
+  3: CreateDesktopShellLink(NewDir + '\', FConfig.ReadString('Favorit',FavMainList.Items[I],''));
+  end;
+ end;
 end;
 
 //Other controls///////////////////////////////////////////////////////////////
@@ -1226,7 +1291,7 @@ if Button = mbRight then
 if (Sender as TListBox).ItemIndex <> -1 then
  begin
   Open1.Enabled := True;
-  Install1.Enabled := True;
+  Aditional1.Enabled := True;
   Extras1.Enabled := True;
   Addtofavorit1.Enabled := True;
   if ExistsGameDir('eXoDOS') then
@@ -1237,7 +1302,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
  end else
  begin
   Open1.Enabled := False;
-  Install1.Enabled := False;
+  Aditional1.Enabled := False;
   Extras1.Enabled := False;
   Addtofavorit1.Enabled := False;
   if ExistsGameDir('eXoDOS') then
@@ -1315,7 +1380,6 @@ if PageControl3.ActivePageIndex = 0 then
   MfStop;
  end;
 
-if FConfig.SectionExists('Favorit') then
 if FavSheet.Visible then
  begin
   FavMainList.Items.Clear;
@@ -1494,6 +1558,7 @@ procedure TMainForm.VideoBoxClick(Sender: TObject);
 begin
 if PageControl2.Visible = True then
  begin
+  VideoEndTimer.Enabled := False;
   MFStop;
   PageControl3.ActivePageIndex := 1;
  end;

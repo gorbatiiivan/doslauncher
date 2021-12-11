@@ -270,7 +270,7 @@ object MainForm: TMainForm
           Top = 272
           Width = 68
           Height = 241
-          ActivePage = CoverSheet
+          ActivePage = VideoSheet
           Align = alClient
           TabOrder = 1
           object VideoSheet: TTabSheet
@@ -372,7 +372,7 @@ object MainForm: TMainForm
       Caption = '-'
     end
     object Extras1: TMenuItem
-      Caption = 'Aditional launch'
+      Caption = 'Additional apps'
     end
     object N5: TMenuItem
       Caption = '-'
@@ -392,9 +392,26 @@ object MainForm: TMainForm
     object N4: TMenuItem
       Caption = '-'
     end
-    object Install1: TMenuItem
-      Caption = 'Install/Uninstall'
-      OnClick = Install1Click
+    object Aditional1: TMenuItem
+      Caption = 'Aditional'
+      object Install1: TMenuItem
+        Caption = 'Install/Uninstall'
+        OnClick = Install1Click
+      end
+      object N14: TMenuItem
+        Caption = '-'
+      end
+      object Desktopshortcut1: TMenuItem
+        Caption = 'Create desktop shortcut'
+        object Createdeskopshortcut1: TMenuItem
+          Caption = 'Game shortcut'
+          OnClick = Createdeskopshortcut1Click
+        end
+        object Createdesktoptabshortcut1: TMenuItem
+          Caption = 'All games in tab'
+          OnClick = Createdesktoptabshortcut1Click
+        end
+      end
     end
     object N2: TMenuItem
       Caption = '-'
@@ -473,14 +490,17 @@ object MainForm: TMainForm
           OnClick = Close1Click
         end
       end
+      object N3: TMenuItem
+        Caption = '-'
+      end
+      object CheckforUpdate1: TMenuItem
+        Caption = 'Check for Update'
+        Enabled = False
+        OnClick = CheckforUpdate1Click
+      end
     end
-    object N3: TMenuItem
+    object N13: TMenuItem
       Caption = '-'
-    end
-    object CheckforUpdate1: TMenuItem
-      Caption = 'Check for Update'
-      Enabled = False
-      OnClick = CheckforUpdate1Click
     end
   end
   object TrayIcon: TTrayIcon
