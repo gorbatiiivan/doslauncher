@@ -13,16 +13,19 @@ doslauncher is a small, portable with a minimal GUI launcher for eXo collections
 
 Simple:
 
-![Main1](https://user-images.githubusercontent.com/84850541/139538252-2e333672-df6e-432d-8a5d-d43e2019156e.PNG)
+![01](https://user-images.githubusercontent.com/84850541/145685673-d4fe5367-3ce8-4d40-bcf2-86f5a3fb968e.PNG)
+
 
 Extended:
 
-![main1](https://user-images.githubusercontent.com/84850541/142477325-b9d9445b-ac64-4d22-a5da-d9ae70df4273.PNG)
-![main4](https://user-images.githubusercontent.com/84850541/139538266-92963fe3-a51d-4251-bd68-04e8be9e5a0d.PNG)
+
+![02](https://user-images.githubusercontent.com/84850541/145685674-1ffc385a-5976-4226-af60-7be40f0d9dd5.PNG)
+![03](https://user-images.githubusercontent.com/84850541/145685708-b9a9eef5-da41-4803-89f3-b029ff20557a.PNG)
+
 
 FullScreen:
 
-![main2](https://user-images.githubusercontent.com/84850541/142477399-84219fc8-b64a-4d3a-a8f1-2183d0603d58.PNG)
+![04](https://user-images.githubusercontent.com/84850541/145685713-9b50800e-8dc0-4d7b-8c9c-2e653e291e31.PNG)
 
 
 If you find a bug or want to improve the program, please write to this e-mail : gorbatiiivan@gmail.com
