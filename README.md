@@ -11,7 +11,7 @@ for 1.6 version:
 
 
 1. Run doslauncher_x32.exe or doslauncher_x64.exe
-2. Select util directory from eXo folder and press Extract button. 
+2. Select directory eXo main folder and press Extract button. 
 4. Run and play, enjoy :).
 
 Simple:
