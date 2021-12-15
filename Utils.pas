@@ -19,9 +19,7 @@ function RunApplication(const AExecutableFile, AParameters: string;
   const AShowOption: Integer = SW_SHOWNORMAL): Boolean;
 procedure FindListIndex(GameName: String; List: TListBox; BackupList: TStringList);
 function ExistsGameDir(Name: String): Boolean;
-function ExistsDOSManualDir: Boolean;
 function GetExecDir: String;
-function GetMainDir: String;
 function GetNotesList(const AFileName: string): AnsiString;
 function StrCut(GameName, SourceString, StartStr, EndStr:String):String;
 function GetNotes(GameName, SourceMemo: String): String;
@@ -208,31 +206,13 @@ end;
 function ExistsGameDir(Name: String): Boolean;
 begin
   SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+Name);
-end;
-
-function ExistsDOSManualDir: Boolean;
-begin
-  SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))))+'Manuals\MS-DOS');
+  Result := DirectoryExists(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ParamStr(0))))+Name);
 end;
 
 function GetExecDir: String;
-var
-  s: String;
 begin
-  s := IncludeTrailingPathDelimiter(s);
-  SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))+s;
-end;
-
-function GetMainDir: String;
-var
-  s: String;
-begin
-  s := IncludeTrailingPathDelimiter(s);
-  SetCurrentDir(ExtractFilePath(Application.ExeName));
-  Result := ExtractFileDir(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0)))))+s;
+  SetCurrentDir(IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ParamStr(0)))));
+  Result := IncludeTrailingPathDelimiter(ExtractFileDir(ExtractFileDir(ParamStr(0))));
 end;
 
 function GetNotesList(const AFileName: string): AnsiString;

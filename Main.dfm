@@ -403,9 +403,9 @@ object MainForm: TMainForm
       end
       object Desktopshortcut1: TMenuItem
         Caption = 'Create desktop shortcut'
-        object Createdeskopshortcut1: TMenuItem
-          Caption = 'Game shortcut'
-          OnClick = Createdeskopshortcut1Click
+        object Selectedgame1: TMenuItem
+          Caption = 'Selected game'
+          OnClick = Selectedgame1Click
         end
         object Createdesktoptabshortcut1: TMenuItem
           Caption = 'All games in tab'

@@ -125,11 +125,12 @@
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>doslauncher_Icon.ico</Icon_MainIcon>
-        <DCC_ExeOutput>.\$(Platform)\$(Config)\eXo\util\doslauncher</DCC_ExeOutput>
+        <DCC_ExeOutput>.\$(Platform)\$(Config)\doslauncher</DCC_ExeOutput>
         <UWP_DelphiLogo44>aditional\images\main_44x44.png</UWP_DelphiLogo44>
         <VerInfo_MinorVer>6</VerInfo_MinorVer>
         <UWP_DelphiLogo150>aditional\images\main_150x150.png</UWP_DelphiLogo150>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.6.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.6.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -148,7 +149,7 @@
         <DCCReference Include="Main.pas">
             <Form>MainForm</Form>
         </DCCReference>
-        <DCCReference Include="utils.pas"/>
+        <DCCReference Include="Utils.pas"/>
         <DCCReference Include="mf.pas"/>
         <RcItem Include="aditional\images\exodos.jpg">
             <ResourceType>RCDATA</ResourceType>

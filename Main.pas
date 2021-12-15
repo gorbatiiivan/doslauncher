@@ -90,7 +90,7 @@ type
     Addtofavorit1: TMenuItem;
     N13: TMenuItem;
     Aditional1: TMenuItem;
-    Createdeskopshortcut1: TMenuItem;
+    Selectedgame1: TMenuItem;
     Createdesktoptabshortcut1: TMenuItem;
     Desktopshortcut1: TMenuItem;
     N14: TMenuItem;
@@ -145,7 +145,7 @@ type
       Shift: TShiftState);
     procedure APlayPauseExecute(Sender: TObject);
     procedure Addtofavorit1Click(Sender: TObject);
-    procedure Createdeskopshortcut1Click(Sender: TObject);
+    procedure Selectedgame1Click(Sender: TObject);
     procedure Createdesktoptabshortcut1Click(Sender: TObject);
   private
     { Private declarations }
@@ -264,31 +264,31 @@ with MainForm do
        end else PageControl3.ActivePageIndex := 1;
      end;
 
-    if ExistsGameDir('eXoDOS') then
+    if ExistsGameDir(FConfig.ReadString('DirPath','!dos','')) then
     begin
     DosList.Clear;
     DosPath.Clear;
     DosMainList.Items.Clear;
-    FindFilePattern(GetExecDir+'eXoDOS\!dos', '*.bat', DosList, DosPath);
+    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!dos',''), '*.bat', DosList, DosPath);
     end;
 
-    if ExistsGameDir('eXoWin3x') then
+    if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','')) then
     begin
     Win3xList.Clear;
     Win3xPath.Clear;
     Win3xMainList.Items.Clear;
-    FindFilePattern(GetExecDir+'eXoWin3x\!win3x', '*.bat', Win3xList, Win3xPath);
+    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!win3x',''), '*.bat', Win3xList, Win3xPath);
     end;
 
-    if ExistsGameDir('eXoScummVM') then
+    if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','')) then
     begin
     ScummVMList.Clear;
     ScummVMPath.Clear;
     ScummVMMainList.Items.Clear;
-    FindFilePattern(GetExecDir+'eXoScummVM\!ScummVM', '*.bat', ScummVMList, ScummVMPath);
+    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!ScummVM',''), '*.bat', ScummVMList, ScummVMPath);
     end;
 
-    if not (ExistsGameDir('eXoDOS')) and not(ExistsGameDir('eXoWin3x')) and not (ExistsGameDir('eXoScummVM')) then
+    if not (ExistsGameDir(FConfig.ReadString('DirPath','!dos',''))) and not(ExistsGameDir(FConfig.ReadString('DirPath','!win3x',''))) and not (ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM',''))) then
     begin
      MainForm.Caption := 'Sorry, not found any eXo Collection folder';
      TrayIcon.Hint := MainForm.Caption;
@@ -407,36 +407,36 @@ begin
    0:
     begin
      ListBox := DosMainList;
-     VideoDir := 'Videos\MS-DOS\Recordings';
+     VideoDir := FConfig.ReadString('DirPath','Videos_MS-DOS','');
     end;
    1:
     begin
      ListBox := Win3xMainList;
-     VideoDir := 'Videos\Windows 3x\Recordings';
+     VideoDir := FConfig.ReadString('DirPath','Videos_Windows3x','');
     end;
    2:
     begin
      ListBox := ScummVMMainList;
-     VideoDir := 'Videos\ScummVM\Recordings';
+     VideoDir := FConfig.ReadString('DirPath','Videos_ScummVM','');
     end;
    3:
     begin
      ListBox := FavMainList;
      if ListBox.ItemIndex <> -1 then
      if ContainsText(FConfig.ReadString('Favorit',ListBox.Items[ListBox.ItemIndex],''), '!dos') then
-     VideoDir := 'Videos\MS-DOS\Recordings' else
+     VideoDir := FConfig.ReadString('DirPath','Videos_MS-DOS','') else
      if ContainsText(FConfig.ReadString('Favorit',ListBox.Items[ListBox.ItemIndex],''), '!win3x') then
-     VideoDir := 'Videos\Windows 3x\Recordings' else
+     VideoDir := FConfig.ReadString('DirPath','Videos_Windows3x','') else
      if ContainsText(FConfig.ReadString('Favorit',ListBox.Items[ListBox.ItemIndex],''), '!ScummVM') then
-     VideoDir := 'Videos\ScummVM\Recordings';
+     VideoDir := FConfig.ReadString('DirPath','Videos_ScummVM','');
     end;
   end;
 
 if ListBox.ItemIndex <> -1 then
  begin
-  if DirectoryExists(GetMainDir+VideoDir) then
+  if DirectoryExists(GetExecDir+VideoDir) then
    begin
-    Videos := TDirectory.GetFiles(GetMainDir+VideoDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
+    Videos := TDirectory.GetFiles(GetExecDir+VideoDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
     if not FileExists(VideoPath) then
      begin
       VideoEndTimer.Enabled := False;
@@ -487,7 +487,7 @@ with MainForm do
       begin
        if PageControl2.ActivePageIndex = 0 then PageControl2.ActivePageIndex := 1;
        //get notes
-       if FileExists(GetMainDir+'Data\Platforms\MS-DOS.xml') then
+       if FileExists(GetExecDir+FConfig.ReadString('DirPath','Notes_MS-DOS','')) then
        NotesBox.Lines.Text := GetNotes(DosMainList.Items[DosMainList.ItemIndex], GetNotesMemo);
       end;
     end else if PageControl2.Visible = True then PageControl2.ActivePageIndex := 0;
@@ -500,7 +500,7 @@ with MainForm do
       begin
        if PageControl2.ActivePageIndex = 0 then PageControl2.ActivePageIndex := 1;
        //get notes
-       if FileExists(GetMainDir+'Data\Platforms\Windows 3x.xml') then
+       if FileExists(GetExecDir+FConfig.ReadString('DirPath','Notes_Windows3x','')) then
        NotesBox.Lines.Text := GetNotes(Win3xMainList.Items[Win3xMainList.ItemIndex], GetNotesMemo);
       end;
     end else if PageControl2.Visible = True then PageControl2.ActivePageIndex := 0;
@@ -513,8 +513,8 @@ with MainForm do
       begin
        if PageControl2.ActivePageIndex = 0 then PageControl2.ActivePageIndex := 1;
        //get notes
-       if FileExists(GetMainDir+'Data\Platforms\ScummVM.xml') or
-        FileExists(GetMainDir+'Data\Platforms\ScummVM SVN.xml') then
+       if FileExists(GetExecDir+FConfig.ReadString('DirPath','Notes_ScummVM','')) or
+        FileExists(GetExecDir+FConfig.ReadString('DirPath','Notes_ScummVMSVN','')) then
        NotesBox.Lines.Text := GetNotes(ScummVMMainList.Items[ScummVMMainList.ItemIndex], GetNotesMemo);
       end;
     end else if PageControl2.Visible = True then PageControl2.ActivePageIndex := 0;
@@ -653,6 +653,22 @@ if Write = true then
     FConfig.WriteInteger('General','VideoSplitterPosNormal',NotesBox.Height);
    end;
   end;
+  if not FConfig.SectionExists('DirPath') then  //daca nu este sectiunea se scrie toate directoarele
+    begin
+     FConfig.WriteString('DirPath','!dos','eXo\eXoDOS\!dos');
+     FConfig.WriteString('DirPath','!win3x','eXo\eXoWin3x\!win3x');
+     FConfig.WriteString('DirPath','!ScummVM','eXo\eXoScummVM\!ScummVM');
+     FConfig.WriteString('DirPath','Videos_MS-DOS','Videos\MS-DOS\Recordings');
+     FConfig.WriteString('DirPath','Videos_Windows3x','Videos\Windows 3x\Recordings');
+     FConfig.WriteString('DirPath','Videos_ScummVM','Videos\ScummVM\Recordings');
+     FConfig.WriteString('DirPath','Notes_MS-DOS','Data\Platforms\MS-DOS.xml');
+     FConfig.WriteString('DirPath','Notes_Windows3x','Data\Platforms\Windows 3x.xml');
+     FConfig.WriteString('DirPath','Notes_ScummVM','Data\Platforms\ScummVM.xml');
+     FConfig.WriteString('DirPath','Notes_ScummVMSVN','Data\Platforms\ScummVM SVN.xml');
+     FConfig.WriteString('DirPath','Manual_MS-DOS','Manuals\MS-DOS');
+     FConfig.WriteString('DirPath','Manual_Windows3x','Manuals\Windows 3x');
+     FConfig.WriteString('DirPath','Manual_Dir','Manuals');
+    end;
   FConfig.UpdateFile;
  end else
  begin
@@ -745,9 +761,9 @@ if not FileExists(ExtractFilePath(ParamStr(0))+'config.ini') then
   RegIni(False, False);
  end;
 
-eXoDOSSheet.TabVisible := ExistsGameDir('eXoDOS');
-eXoWin3xSheet.TabVisible := ExistsGameDir('eXoWin3x');
-eXoScummVMSheet.TabVisible := ExistsGameDir('eXoScummVM');
+eXoDOSSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!dos',''));
+eXoWin3xSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!win3x',''));
+eXoScummVMSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM',''));
 
 if LoadResourceFontByID(1, 'MYFONT') then
  begin
@@ -910,22 +926,22 @@ begin
   0:
    begin
     ListBox := DosMainList;
-    ManualPathDir := 'Manuals\MS-DOS';
+    ManualPathDir := FConfig.ReadString('DirPath','Manual_MS-DOS','');
    end;
   1:
    begin
     ListBox := Win3xMainList;
-    ManualPathDir := 'Manuals\Windows 3x';
+    ManualPathDir := FConfig.ReadString('DirPath','Manual_Windows3x','');
    end;
   2:
    begin
     ListBox := ScummVMMainList;
-    ManualPathDir := 'Manuals';
+    ManualPathDir := FConfig.ReadString('DirPath','Manual_Dir','');
    end;
   3:
    begin
     ListBox := FavMainList;
-    ManualPathDir := 'Manuals';
+    ManualPathDir := FConfig.ReadString('DirPath','Manual_Dir','');
    end;
   end;
 
@@ -943,7 +959,7 @@ if PageControl.ActivePage.Visible then
   if FConfig.ValueExists('FavoritNotes',ListBox.Items[ListBox.ItemIndex]) then
   Addtofavorit1.Caption := 'Remove form favorit' else Addtofavorit1.Caption := 'Add to favorit';
   //if Exists manual in dir to menu manual is enabled
-  Manuals := TDirectory.GetFiles(GetMainDir+ManualPathDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  Manuals := TDirectory.GetFiles(GetExecDir+ManualPathDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do
   Manual1.Enabled := True;
  end;
@@ -962,28 +978,28 @@ begin
   0:
    begin
     ListBox := DosMainList;
-    ManualPathDir := 'Manuals\MS-DOS';
+    ManualPathDir := FConfig.ReadString('DirPath','Manual_MS-DOS','');
    end;
   1:
    begin
     ListBox := Win3xMainList;
-    ManualPathDir := 'Manuals\Windows 3x';
+    ManualPathDir := FConfig.ReadString('DirPath','Manual_Windows3x','');
    end;
   2:
    begin
     ListBox := ScummVMMainList;
-    ManualPathDir := 'Manuals';
+    ManualPathDir := FConfig.ReadString('DirPath','Manual_Dir','');
    end;
   3:
    begin
     ListBox := FavMainList;
-    ManualPathDir := 'Manuals';
+    ManualPathDir := FConfig.ReadString('DirPath','Manual_Dir','');
    end;
   end;
 if PageControl.ActivePage.Visible then
  begin
-  SetCurrentDir(GetMainDir);
-  Manuals := TDirectory.GetFiles(GetMainDir+ManualPathDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
+  SetCurrentDir(GetExecDir);
+  Manuals := TDirectory.GetFiles(GetExecDir+ManualPathDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do
   if RunApplication(ManualPath,'') = True then StopVideoByTimer;
  end;
@@ -1038,14 +1054,11 @@ AddGamesToList;
 end;
 
 procedure TMainForm.CheckforUpdate1Click(Sender: TObject);
-var
-  s: String;
 begin
 if DosMainList.ItemIndex <> -1 then
  begin
-   s := IncludeTrailingPathDelimiter(s);
-   SetCurrentDir(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))+s+'Update');
-   if RunApplication(ExtractFileDir(ExtractFileDir(ExtractFileDir(ParamStr(0))))+s+'Update'+s+'update.bat', '') = True then StopVideoByTimer;
+   SetCurrentDir(GetExecDir+'eXo\Update');
+   if RunApplication(GetExecDir+'eXo\Update\update.bat','') = True then StopVideoByTimer;
  end;
 end;
 
@@ -1216,7 +1229,7 @@ if not FConfig.ValueExists('FavoritNotes',ListBox.Items[ListBox.ItemIndex]) then
 FConfig.UpdateFile;
 end;
 
-procedure TMainForm.Createdeskopshortcut1Click(Sender: TObject);
+procedure TMainForm.Selectedgame1Click(Sender: TObject);
 var
   ListBox: TListBox;
   TargetName: String;
@@ -1294,7 +1307,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Aditional1.Enabled := True;
   Extras1.Enabled := True;
   Addtofavorit1.Enabled := True;
-  if ExistsGameDir('eXoDOS') then
+  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','')) then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   FullScreen1.Checked := isFullScreen;
   ActiveListOnClick;
@@ -1305,7 +1318,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Aditional1.Enabled := False;
   Extras1.Enabled := False;
   Addtofavorit1.Enabled := False;
-  if ExistsGameDir('eXoDOS') then
+  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','')) then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   FullScreen1.Checked := isFullScreen;
   ActiveListOnClick;
@@ -1405,7 +1418,7 @@ if FavSheet.Visible then
    end;
  end;
 
-if ExistsGameDir('eXoDOS') then
+if ExistsGameDir(FConfig.ReadString('DirPath','!dos','')) then
 if eXoDOSSheet.Visible then
  begin
   ActiveControl := DosMainList;
@@ -1428,12 +1441,12 @@ if eXoDOSSheet.Visible then
     ImageBox.Stretch := True;
     PageControl3.ActivePageIndex := 1;
     //load notes
-    if FileExists(GetMainDir+'Data\Platforms\MS-DOS.xml') then
-    GetNotesMemo := Utf8ToString(GetNotesList(GetMainDir+'Data\Platforms\MS-DOS.xml'));
+    if FileExists(GetExecDir+FConfig.ReadString('DirPath','Notes_MS-DOS','')) then
+    GetNotesMemo := Utf8ToString(GetNotesList(GetExecDir+FConfig.ReadString('DirPath','Notes_MS-DOS','')));
    end;
  end;
 
-if ExistsGameDir('eXoWin3x') then
+if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','')) then
 if eXoWin3xSheet.Visible then
  begin
   ActiveControl := Win3xMainList;
@@ -1456,12 +1469,12 @@ if eXoWin3xSheet.Visible then
     ImageBox.Stretch := True;
     PageControl3.ActivePageIndex := 1;
     //load notes
-    if FileExists(GetMainDir+'Data\Platforms\Windows 3x.xml') then
-    GetNotesMemo := Utf8ToString(GetNotesList(GetMainDir+'Data\Platforms\Windows 3x.xml'));
+    if FileExists(GetExecDir+FConfig.ReadString('DirPath','Notes_Windows3x','')) then
+    GetNotesMemo := Utf8ToString(GetNotesList(GetExecDir+FConfig.ReadString('DirPath','Notes_Windows3x','')));
    end;
  end;
 
-if ExistsGameDir('eXoScummVM') then
+if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','')) then
 if eXoScummVMSheet.Visible then
  begin
   ActiveControl := ScummVMMainList;
@@ -1484,10 +1497,10 @@ if eXoScummVMSheet.Visible then
     ImageBox.Stretch := True;
     PageControl3.ActivePageIndex := 1;
     //load notes
-    if FileExists(GetMainDir+'Data\Platforms\ScummVM.xml') then
-     GetNotesMemo := Utf8ToString(GetNotesList(GetMainDir+'Data\Platforms\ScummVM.xml'));
-    if FileExists(GetMainDir+'Data\Platforms\ScummVM SVN.xml') then
-     GetNotesMemo := GetNotesMemo + Utf8ToString(GetNotesList(GetMainDir+'Data\Platforms\ScummVM SVN.xml'));
+    if FileExists(GetExecDir+FConfig.ReadString('DirPath','Notes_ScummVM','')) then
+     GetNotesMemo := Utf8ToString(GetNotesList(GetExecDir+FConfig.ReadString('DirPath','Notes_ScummVM','')));
+    if FileExists(GetExecDir+FConfig.ReadString('DirPath','Notes_ScummVMSVN','')) then
+     GetNotesMemo := GetNotesMemo + Utf8ToString(GetNotesList(GetExecDir+FConfig.ReadString('DirPath','Notes_ScummVMSVN','')));
    end;
  end;
 
