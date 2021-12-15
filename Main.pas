@@ -554,7 +554,7 @@ case PageControl.ActivePageIndex of
     begin
      ListBox := FavMainList;
      if ListBox.ItemIndex <> -1 then
-     PathDir := FConfig.ReadString('Favorit',ListBox.Items[ListBox.ItemIndex],'');
+     PathDir := GetExecDir + FConfig.ReadString('Favorit',ListBox.Items[ListBox.ItemIndex],'');
     end;
   end;
 
@@ -1034,7 +1034,7 @@ case PageControl.ActivePageIndex of
    3:
     begin
      ListBox := FavMainList;
-     InstallFileDir := FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],'');
+     InstallFileDir := GetExecDir + FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],'');
     end;
   end;
 
@@ -1185,17 +1185,17 @@ case PageControl.ActivePageIndex of
    0:
     begin
      ListBox := DosMainList;
-     PathDir := GetDosCurrentDir;
+     PathDir := StringReplace(GetDosCurrentDir,GetExecDir,'',[rfReplaceAll]);
     end;
    1:
     begin
      ListBox := Win3xMainList;
-     PathDir := GetWin3xCurrentDir;
+     PathDir := StringReplace(GetWin3xCurrentDir,GetExecDir,'',[rfReplaceAll]);
     end;
    2:
     begin
      ListBox := ScummVMMainList;
-     PathDir := GetScummVMCurrentDir;
+     PathDir := StringReplace(GetScummVMCurrentDir,GetExecDir,'',[rfReplaceAll]);
     end;
    3:
     begin
@@ -1253,7 +1253,7 @@ case PageControl.ActivePageIndex of
    3:
     begin
      ListBox := FavMainList;
-     TargetName := FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],'');
+     TargetName := GetExecDir + FConfig.ReadString('Favorit',FavMainList.Items[FavMainList.ItemIndex],'');
     end;
   end;
 if CreateDesktopShellLink(GetDesktopFolder, TargetName) then
@@ -1280,7 +1280,7 @@ for i := 0 to ListBox.Items.Count-1 do
   0: CreateDesktopShellLink(NewDir + '\', DosPath[FindString(DosList,DosMainList.Items[I])]);
   1: CreateDesktopShellLink(NewDir + '\', Win3xPath[FindString(Win3xList,Win3xMainList.Items[I])]);
   2: CreateDesktopShellLink(NewDir + '\', ScummVMPath[FindString(ScummVMList,ScummVMMainList.Items[I])]);
-  3: CreateDesktopShellLink(NewDir + '\', FConfig.ReadString('Favorit',FavMainList.Items[I],''));
+  3: CreateDesktopShellLink(NewDir + '\', GetExecDir + FConfig.ReadString('Favorit',FavMainList.Items[I],''));
   end;
  end;
 end;
