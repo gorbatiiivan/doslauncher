@@ -264,31 +264,31 @@ with MainForm do
        end else PageControl3.ActivePageIndex := 1;
      end;
 
-    if ExistsGameDir(FConfig.ReadString('DirPath','!dos','')) then
+    if ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos')) then
     begin
     DosList.Clear;
     DosPath.Clear;
     DosMainList.Items.Clear;
-    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!dos',''), '*.bat', DosList, DosPath);
+    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!dos','!dos'), '*.bat', DosList, DosPath);
     end;
 
-    if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','')) then
+    if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','!win3x')) then
     begin
     Win3xList.Clear;
     Win3xPath.Clear;
     Win3xMainList.Items.Clear;
-    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!win3x',''), '*.bat', Win3xList, Win3xPath);
+    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!win3x','!win3x'), '*.bat', Win3xList, Win3xPath);
     end;
 
-    if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','')) then
+    if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','!ScummVM')) then
     begin
     ScummVMList.Clear;
     ScummVMPath.Clear;
     ScummVMMainList.Items.Clear;
-    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!ScummVM',''), '*.bat', ScummVMList, ScummVMPath);
+    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!ScummVM','!ScummVM'), '*.bat', ScummVMList, ScummVMPath);
     end;
 
-    if not (ExistsGameDir(FConfig.ReadString('DirPath','!dos',''))) and not(ExistsGameDir(FConfig.ReadString('DirPath','!win3x',''))) and not (ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM',''))) then
+    if not (ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos'))) and not(ExistsGameDir(FConfig.ReadString('DirPath','!win3x','!win3x'))) and not (ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','!ScummVM'))) then
     begin
      MainForm.Caption := 'Sorry, not found any eXo Collection folder';
      TrayIcon.Hint := MainForm.Caption;
@@ -761,9 +761,9 @@ if not FileExists(ExtractFilePath(ParamStr(0))+'config.ini') then
   RegIni(False, False);
  end;
 
-eXoDOSSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!dos',''));
-eXoWin3xSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!win3x',''));
-eXoScummVMSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM',''));
+eXoDOSSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos'));
+eXoWin3xSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!win3x','!win3x'));
+eXoScummVMSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','!ScummVM'));
 
 if LoadResourceFontByID(1, 'MYFONT') then
  begin
@@ -1210,6 +1210,8 @@ if not FConfig.ValueExists('FavoritNotes',ListBox.Items[ListBox.ItemIndex]) then
  begin
   FConfig.DeleteKey('Favorit',ListBox.Items[ListBox.ItemIndex]);
   FConfig.DeleteKey('FavoritNotes',ListBox.Items[ListBox.ItemIndex]);
+   //daca este selectat joaca in list in alt tab
+  if FavIndex = ListBox.Items[ListBox.ItemIndex] then FavIndex := '';
   if PageControl.ActivePageIndex = 3 then
    begin
     ListBox.Items.Delete(FindListBoxString(ListBox,ListBox.Items[ListBox.ItemIndex]));
@@ -1307,7 +1309,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Aditional1.Enabled := True;
   Extras1.Enabled := True;
   Addtofavorit1.Enabled := True;
-  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','')) then
+  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos')) then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   FullScreen1.Checked := isFullScreen;
   ActiveListOnClick;
@@ -1318,7 +1320,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Aditional1.Enabled := False;
   Extras1.Enabled := False;
   Addtofavorit1.Enabled := False;
-  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','')) then
+  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos')) then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   FullScreen1.Checked := isFullScreen;
   ActiveListOnClick;
@@ -1380,7 +1382,7 @@ procedure TMainForm.DosMainListKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
 if (Key=VK_UP) or (Key=VK_DOWN) or (Key=VK_LEFT) or (Key=VK_RIGHT)
-or (Key=VK_HOME) or (Key=VK_END)or (Key=VK_PRIOR)or (Key=VK_NEXT) then IsArrowDown := True;
+or (Key=VK_HOME) or (Key=VK_END)or (Key=VK_PRIOR)or (Key=VK_NEXT) then IsArrowDown := False;
 end;
 
 procedure TMainForm.PageControlChange(Sender: TObject);
@@ -1401,10 +1403,7 @@ if FavSheet.Visible then
   if FavMainList.Count <> -1 then
    begin
     if FavIndex = '' then FavMainList.ItemIndex := 0 else
-      begin
-       FavMainList.ItemIndex := FindListBoxString(FavMainList,FavIndex);
-       SendMessage(FavMainList.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
-      end;
+       FavMainList.Selected[FindListBoxString(FavMainList,FavIndex)] := True;
    end;
    //if launcher state: extended then page visible
   if PageControl2.Visible = True then
@@ -1418,7 +1417,7 @@ if FavSheet.Visible then
    end;
  end;
 
-if ExistsGameDir(FConfig.ReadString('DirPath','!dos','')) then
+if ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos')) then
 if eXoDOSSheet.Visible then
  begin
   ActiveControl := DosMainList;
@@ -1426,10 +1425,7 @@ if eXoDOSSheet.Visible then
   if DosList.Count <> -1 then
   begin
   if DosIndex = '' then DosMainList.ItemIndex := 0 else
-   begin
-    DosMainList.ItemIndex := FindListBoxString(DosMainList,DOSIndex);
-    SendMessage(DosMainList.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
-   end;
+     DosMainList.Selected[FindListBoxString(DosMainList,DosIndex)] := True;
   end;
   //if launcher state: extended then page visible
   if PageControl2.Visible = True then
@@ -1446,7 +1442,7 @@ if eXoDOSSheet.Visible then
    end;
  end;
 
-if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','')) then
+if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','!win3x')) then
 if eXoWin3xSheet.Visible then
  begin
   ActiveControl := Win3xMainList;
@@ -1454,10 +1450,7 @@ if eXoWin3xSheet.Visible then
   if Win3xList.Count <> -1 then
   begin
   if Win3xIndex = '' then Win3xMainList.ItemIndex := 0 else
-   begin
-    Win3xMainList.ItemIndex := FindListBoxString(Win3xMainList,Win3xIndex);
-    SendMessage(Win3xMainList.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
-   end;
+     Win3xMainList.Selected[FindListBoxString(Win3xMainList,Win3xIndex)] := True;
   end;
   //if launcher state: extended then page visible
   if PageControl2.Visible = True then
@@ -1474,7 +1467,7 @@ if eXoWin3xSheet.Visible then
    end;
  end;
 
-if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','')) then
+if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','!ScummVM')) then
 if eXoScummVMSheet.Visible then
  begin
   ActiveControl := ScummVMMainList;
@@ -1482,10 +1475,7 @@ if eXoScummVMSheet.Visible then
   if ScummVMList.Count <> -1 then
   begin
   if ScummVMIndex = '' then ScummVMMainList.ItemIndex := 0 else
-   begin
-    ScummVMMainList.ItemIndex := FindListBoxString(ScummVMMainList,ScummVMIndex);
-    SendMessage(ScummVMMainList.Handle, WM_VSCROLL, SB_LINEDOWN, 0);
-   end;
+     ScummVMMainList.Selected[FindListBoxString(ScummVMMainList,ScummVMIndex)] := True;
   end;
   //if launcher state: extended then page visible
   if PageControl2.Visible = True then

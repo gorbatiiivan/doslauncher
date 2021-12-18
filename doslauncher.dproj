@@ -149,7 +149,7 @@
         <DCCReference Include="Main.pas">
             <Form>MainForm</Form>
         </DCCReference>
-        <DCCReference Include="Utils.pas"/>
+        <DCCReference Include="utils.pas"/>
         <DCCReference Include="mf.pas"/>
         <RcItem Include="aditional\images\exodos.jpg">
             <ResourceType>RCDATA</ResourceType>

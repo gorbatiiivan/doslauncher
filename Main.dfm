@@ -70,7 +70,7 @@ object MainForm: TMainForm
       Top = 0
       Width = 497
       Height = 548
-      ActivePage = FavSheet
+      ActivePage = eXoDOSSheet
       Align = alLeft
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
