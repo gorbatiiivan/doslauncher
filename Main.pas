@@ -264,31 +264,31 @@ with MainForm do
        end else PageControl3.ActivePageIndex := 1;
      end;
 
-    if ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos')) then
+    if ExistsGameDir(FConfig.ReadString('DirPath','!dos','eXo\eXoDOS\!dos')) then
     begin
     DosList.Clear;
     DosPath.Clear;
     DosMainList.Items.Clear;
-    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!dos','!dos'), '*.bat', DosList, DosPath);
+    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!dos','eXo\eXoDOS\!dos'), '*.bat', DosList, DosPath);
     end;
 
-    if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','!win3x')) then
+    if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','eXo\eXoWin3x\!win3x')) then
     begin
     Win3xList.Clear;
     Win3xPath.Clear;
     Win3xMainList.Items.Clear;
-    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!win3x','!win3x'), '*.bat', Win3xList, Win3xPath);
+    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!win3x','eXo\eXoWin3x\!win3x'), '*.bat', Win3xList, Win3xPath);
     end;
 
-    if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','!ScummVM')) then
+    if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','eXo\eXoScummVM\!ScummVM')) then
     begin
     ScummVMList.Clear;
     ScummVMPath.Clear;
     ScummVMMainList.Items.Clear;
-    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!ScummVM','!ScummVM'), '*.bat', ScummVMList, ScummVMPath);
+    FindFilePattern(GetExecDir+FConfig.ReadString('DirPath','!ScummVM','eXo\eXoScummVM\!ScummVM'), '*.bat', ScummVMList, ScummVMPath);
     end;
 
-    if not (ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos'))) and not(ExistsGameDir(FConfig.ReadString('DirPath','!win3x','!win3x'))) and not (ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','!ScummVM'))) then
+    if not (ExistsGameDir(FConfig.ReadString('DirPath','!dos','eXo\eXoDOS\!dos'))) and not(ExistsGameDir(FConfig.ReadString('DirPath','!win3x','eXo\eXoWin3x\!win3x'))) and not (ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','eXo\eXoScummVM\!ScummVM'))) then
     begin
      MainForm.Caption := 'Sorry, not found any eXo Collection folder';
      TrayIcon.Hint := MainForm.Caption;
@@ -522,7 +522,7 @@ with MainForm do
   MainForm.Caption := SetCaption;
   TrayIcon.Hint := MainForm.Caption;
   SysLabel.Caption := MainForm.Caption;
-  PlayVideoOnClick;
+  if PageControl2.Visible = True then PlayVideoOnClick;
  end;
 end;
 
@@ -653,6 +653,12 @@ if Write = true then
     FConfig.WriteInteger('General','VideoSplitterPosNormal',NotesBox.Height);
    end;
   end;
+  FConfig.UpdateFile;
+ end else
+ begin
+  FullScreenonstartup1.Checked := FConfig.ReadBool('General','FullScreen',False);
+  if FullScreenonstartup1.Checked = False then
+  begin
   if not FConfig.SectionExists('DirPath') then  //daca nu este sectiunea se scrie toate directoarele
     begin
      FConfig.WriteString('DirPath','!dos','eXo\eXoDOS\!dos');
@@ -668,13 +674,9 @@ if Write = true then
      FConfig.WriteString('DirPath','Manual_MS-DOS','Manuals\MS-DOS');
      FConfig.WriteString('DirPath','Manual_Windows3x','Manuals\Windows 3x');
      FConfig.WriteString('DirPath','Manual_Dir','Manuals');
+     FConfig.UpdateFile;
     end;
-  FConfig.UpdateFile;
- end else
- begin
-  FullScreenonstartup1.Checked := FConfig.ReadBool('General','FullScreen',False);
-  if FullScreenonstartup1.Checked = False then
-  begin
+
    Top := FConfig.ReadInteger('General','Top',Top);
    Left := FConfig.ReadInteger('General','Left',Left);
    Width := FConfig.ReadInteger('General','Width',Width);
@@ -761,9 +763,9 @@ if not FileExists(ExtractFilePath(ParamStr(0))+'config.ini') then
   RegIni(False, False);
  end;
 
-eXoDOSSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos'));
-eXoWin3xSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!win3x','!win3x'));
-eXoScummVMSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','!ScummVM'));
+eXoDOSSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!dos','eXo\eXoDOS\!dos'));
+eXoWin3xSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!win3x','eXo\eXoWin3x\!win3x'));
+eXoScummVMSheet.TabVisible := ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','eXo\eXoScummVM\!ScummVM'));
 
 if LoadResourceFontByID(1, 'MYFONT') then
  begin
@@ -957,7 +959,7 @@ if PageControl.ActivePage.Visible then
   ExtrasFileAdd(Extras1);
   //if exists game in favorit then caption change
   if FConfig.ValueExists('FavoritNotes',ListBox.Items[ListBox.ItemIndex]) then
-  Addtofavorit1.Caption := 'Remove form favorit' else Addtofavorit1.Caption := 'Add to favorit';
+  Addtofavorit1.Caption := 'Remove form favorite' else Addtofavorit1.Caption := 'Add to favorite';
   //if Exists manual in dir to menu manual is enabled
   Manuals := TDirectory.GetFiles(GetExecDir+ManualPathDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
   for ManualPath in Manuals do
@@ -996,7 +998,8 @@ begin
     ManualPathDir := FConfig.ReadString('DirPath','Manual_Dir','');
    end;
   end;
-if PageControl.ActivePage.Visible then
+if PageControl.ActivePageIndex <> -1 then
+if ListBox.ItemIndex <> -1 then
  begin
   SetCurrentDir(GetExecDir);
   Manuals := TDirectory.GetFiles(GetExecDir+ManualPathDir, ListBox.Items[ListBox.ItemIndex]+'*', TSearchOption.soAllDirectories);
@@ -1309,7 +1312,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Aditional1.Enabled := True;
   Extras1.Enabled := True;
   Addtofavorit1.Enabled := True;
-  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos')) then
+  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','eXo\eXoDOS\!dos')) then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   FullScreen1.Checked := isFullScreen;
   ActiveListOnClick;
@@ -1320,7 +1323,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   Aditional1.Enabled := False;
   Extras1.Enabled := False;
   Addtofavorit1.Enabled := False;
-  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos')) then
+  if ExistsGameDir(FConfig.ReadString('DirPath','!dos','eXo\eXoDOS\!dos')) then
   CheckforUpdate1.Enabled := eXoDOSSheet.Visible;
   FullScreen1.Checked := isFullScreen;
   ActiveListOnClick;
@@ -1417,7 +1420,7 @@ if FavSheet.Visible then
    end;
  end;
 
-if ExistsGameDir(FConfig.ReadString('DirPath','!dos','!dos')) then
+if ExistsGameDir(FConfig.ReadString('DirPath','!dos','eXo\eXoDOS\!dos')) then
 if eXoDOSSheet.Visible then
  begin
   ActiveControl := DosMainList;
@@ -1442,7 +1445,7 @@ if eXoDOSSheet.Visible then
    end;
  end;
 
-if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','!win3x')) then
+if ExistsGameDir(FConfig.ReadString('DirPath','!win3x','eXo\eXoWin3x\!win3x')) then
 if eXoWin3xSheet.Visible then
  begin
   ActiveControl := Win3xMainList;
@@ -1467,7 +1470,7 @@ if eXoWin3xSheet.Visible then
    end;
  end;
 
-if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','!ScummVM')) then
+if ExistsGameDir(FConfig.ReadString('DirPath','!ScummVM','eXo\eXoScummVM\!ScummVM')) then
 if eXoScummVMSheet.Visible then
  begin
   ActiveControl := ScummVMMainList;

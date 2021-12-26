@@ -70,7 +70,7 @@ object MainForm: TMainForm
       Top = 0
       Width = 497
       Height = 548
-      ActivePage = eXoDOSSheet
+      ActivePage = FavSheet
       Align = alLeft
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -170,7 +170,7 @@ object MainForm: TMainForm
         end
       end
       object FavSheet: TTabSheet
-        Caption = 'Favorit'
+        Caption = 'Favorite'
         object FavMainList: TListBox
           Left = 0
           Top = 0
@@ -378,7 +378,7 @@ object MainForm: TMainForm
       Caption = '-'
     end
     object Addtofavorit1: TMenuItem
-      Caption = 'Add to favorit'
+      Caption = 'Add to favorite'
       OnClick = Addtofavorit1Click
     end
     object N12: TMenuItem
