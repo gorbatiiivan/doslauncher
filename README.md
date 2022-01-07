@@ -3,6 +3,7 @@
 doslauncher is a small, portable with a minimal GUI launcher for eXo collections(eXoDOS V5,eXoWin3x,eXoScummVM)
 
 System requirements:
+
 Operating system (OS) - Windows Vista +
 System memory (RAM) - 256 MB (extended mode); 32 MB (simple mode).
 Hard disk drive (HDD) - 10 MB.
