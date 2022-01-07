@@ -14,19 +14,23 @@ doslauncher is a small, portable with a minimal GUI launcher for eXo collections
 
 Simple:
 
-![01](https://user-images.githubusercontent.com/84850541/145685673-d4fe5367-3ce8-4d40-bcf2-86f5a3fb968e.PNG)
+![03](https://user-images.githubusercontent.com/84850541/148533267-6a8153f7-ab9a-4d18-8bb7-d13f05fd3111.PNG)
 
 
 Extended:
 
+![01](https://user-images.githubusercontent.com/84850541/148533300-57911242-7148-4ba2-a83e-158b30e572f4.PNG)
 
-![02](https://user-images.githubusercontent.com/84850541/145685674-1ffc385a-5976-4226-af60-7be40f0d9dd5.PNG)
-![03](https://user-images.githubusercontent.com/84850541/145685708-b9a9eef5-da41-4803-89f3-b029ff20557a.PNG)
+![02](https://user-images.githubusercontent.com/84850541/148533204-48ab7667-eec8-48f3-b507-d316d6a0466b.PNG)
+
+![05](https://user-images.githubusercontent.com/84850541/148533215-d78ca464-2f48-4cc4-89a9-6f3f625e128c.PNG)
+
 
 
 FullScreen:
 
-![04](https://user-images.githubusercontent.com/84850541/145685713-9b50800e-8dc0-4d7b-8c9c-2e653e291e31.PNG)
+![06](https://user-images.githubusercontent.com/84850541/148533084-b2ca09dd-ba72-4ba5-8ca8-fe6ce3076124.PNG)
+
 
 
 If you find a bug or want to improve the program, please write to this e-mail : gorbatiiivan@gmail.com
