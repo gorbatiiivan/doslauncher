@@ -2,14 +2,16 @@
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, Forms, System.SysUtils, Vcl.StdCtrls,
+uses Winapi.Windows, Winapi.Messages, Forms, System.SysUtils, Vcl.StdCtrls, Vcl.ComCtrls,
      System.Classes, ShellAPI, Vcl.ExtCtrls, Vcl.Menus, Masks, IniFiles, ShlObj,
      ComObj, ActiveX;
 
 
 function LoadResourceFontByID( ResourceID : Integer; ResType: PChar ) : Boolean;
 function FindString(List: TStringList; s: string): Integer;
+function FindTabString(List: TTabControl; s: string): Integer;
 function FindListBoxString(List: TListBox; s: string): Integer;
+procedure FindListIndex2(GameName: String; List: TStringList; BackupList: TStringList);
 function FindMenuString(List: TMenuItem; s: string): Integer;
 procedure FindFilePattern(root: String; pattern: String; NameList: TStringList; ListPath: TStringList);
 procedure FindExtrasFile(root: String; pattern: String; FList: TStringList);
@@ -51,6 +53,17 @@ begin
     inc(i);
   Result := i;
 end;
+
+function FindTabString(List: TTabControl; s: string): Integer;
+var
+  i: Integer;
+begin
+  i := 0;
+  while (i < List.Tabs.Count) and (List.Tabs[i] <> s) do
+    inc(i);
+  Result := i;
+end;
+
 
 function FindListBoxString(List: TListBox; s: string): Integer;
 var
@@ -163,6 +176,19 @@ begin
   do if Pos(AnsiUpperCase(GameName), AnsiUpperCase(List.Items.Strings[i])) = 0
         then List.Items.Delete(i);
  List.Items.EndUpdate;
+end;
+
+procedure FindListIndex2(GameName: String; List: TStringList; BackupList: TStringList);
+var
+  i: Integer;
+begin
+ List.BeginUpdate;
+ List.Assign(BackupList);
+ if GameName <> '' then
+ for i := List.Count - 1 downto 0
+  do if Pos(AnsiUpperCase(GameName), AnsiUpperCase(List.Strings[i])) = 0
+        then List.Delete(i);
+ List.EndUpdate;
 end;
 
 function ExistsGameDir(Name: String): Boolean;
@@ -298,6 +324,5 @@ begin
     if IPFile.Save(PWideChar(LinkName), False) = S_OK then
       Result := True;
 end;
-
 
 end.

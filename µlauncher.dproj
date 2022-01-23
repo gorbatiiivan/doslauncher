@@ -157,7 +157,7 @@
         <DCCReference Include="ScreenImageUnit.pas">
             <Form>ScreenImageForm</Form>
         </DCCReference>
-        <DCCReference Include="utils.pas"/>
+        <DCCReference Include="Utils.pas"/>
         <DCCReference Include="mf.pas"/>
         <RcItem Include="aditional\modern_dos\ModernDOS8x16.ttf">
             <ResourceType>MYFONT</ResourceType>

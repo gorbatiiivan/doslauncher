@@ -86,6 +86,7 @@ type
     DosMainList: TListBox;
     N6: TMenuItem;
     Scangamesinthistab1: TMenuItem;
+    ComboBox1: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure DosMainListMouseDown(Sender: TObject; Button: TMouseButton;
@@ -138,6 +139,9 @@ type
     procedure Image1Click(Sender: TObject);
     procedure TabControlChange(Sender: TObject);
     procedure Scangamesinthistab1Click(Sender: TObject);
+    procedure ComboBox1Change(Sender: TObject);
+    procedure ComboBox1DrawItem(Control: TWinControl; Index: Integer;
+      Rect: TRect; State: TOwnerDrawState);
   private
     { Private declarations }
     IsArrowDown: Boolean;
@@ -393,6 +397,17 @@ if DosMainList.ItemIndex <> -1 then
 end;
 end;
 
+procedure LoadPlaylists(List: TComboBox);
+begin
+with MainForm do
+ begin
+  List.Items.Clear;
+  FConfig.ReadSection(TabControl.Tabs[TabControl.TabIndex], List.Items);
+  List.Items.Insert(0,'All games');
+  List.ItemIndex := 0;
+ end;
+end;
+
 //IniFile//////////////////////////////////////////////////////////////////////
 
 function TMainForm.GetFConfig: TMemIniFile;
@@ -464,6 +479,12 @@ if FirstRun = True then
    FConfig.WriteString('xml','Win3x','µlauncher\Windows 3x.xml');
    FConfig.WriteString('Video','DOS','Videos\MS-DOS\Recordings');
    FConfig.WriteString('Video','Win3x','Videos\Windows 3x\Recordings');
+   FConfig.WriteString('DOS','eXoDOS 3dfx Games','Data\Playlists\eXoDOS 3dfx Games.xml');
+   FConfig.WriteString('DOS','eXoDOS Games with CGA Composite','Data\Playlists\eXoDOS Games with CGA Composite.xml');
+   FConfig.WriteString('DOS','eXoDOS Games with Gravis Ultrasound','Data\Playlists\eXoDOS Games with Gravis Ultrasound.xml');
+   FConfig.WriteString('DOS','eXoDOS Games with MT-32','Data\Playlists\eXoDOS Games with MT-32.xml');
+   FConfig.WriteString('DOS','eXoDOS Games with Sound Canvas','Data\Playlists\eXoDOS Games with Sound Canvas.xml');
+   FConfig.WriteString('DOS','eXoDOS Remote Multiplayer','Data\Playlists\eXoDOS Remote Multiplayer.xml');
    FConfig.WriteInteger('General','Top',Top);
    FConfig.WriteInteger('General','Left',Left);
    FConfig.WriteInteger('General','Width',Width);
@@ -654,6 +675,14 @@ if LoadResourceFontByID(1, 'MYFONT') then
    DosMainList.Font.Color := $00FFFF55;
    DosMainList.Style := lbOwnerDrawFixed;
 
+   ComboBox1.ParentFont := False;
+   ComboBox1.Font.Size := 12;
+   ComboBox1.Font.Name := 'Modern DOS 8x16';
+   ComboBox1.ParentColor := True;
+   ComboBox1.Color := $00AA0000;
+   ComboBox1.Font.Color := $00FFFF55;
+   ComboBox1.Style := csOwnerDrawFixed;
+
    TabControl.ParentFont := False;
    TabControl.Font.Size := 12;
    TabControl.Font.Name := 'Modern DOS 8x16';
@@ -671,6 +700,8 @@ begin
  DosMainList.BorderStyle := bsSingle;
  DosMainList.Style := lbStandard;
  DosMainList.Font.Size := 10;
+ ComboBox1.Style := csDropDownList;
+ ComboBox1.Font.Size := 10;
  NotesBox.BorderStyle := bsSingle;
  NotesBox.Font.Size := 10;
  FindEdit.Font.Size := 10;
@@ -748,6 +779,9 @@ procedure TMainForm.FormResize(Sender: TObject);
 begin
 MainPanel.SetBounds(10,10,ClientWidth -20, ClientHeight -44);
 cmdlabel.SetBounds(8,ClientHeight -20, cmdlabel.Width, cmdlabel.Height);
+//change findedit.top
+if FConfig.ReadBool('General','isStyled',True) = True then
+FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18) else
 FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -22, ClientWidth -cmdlabel.Width-12, 18);
 if isFullScreen = True then
  begin
@@ -999,6 +1033,9 @@ if MessageDlg('Do you really want to scan games?', mtConfirmation, [mbYes, mbNo]
    cmdlabel.Caption := 'c:\eXo\'+TabControl.Tabs[TabControl.TabIndex] + '>find ';
    FindEdit.Text := '';
    FindEdit.Enabled := True;
+   //change findedit.top
+   if FConfig.ReadBool('General','isStyled',True) = True then
+   FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18) else
    FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -22, ClientWidth -cmdlabel.Width-12, 18);
    TabControl.Enabled := True;
    DosMainListClick(Sender);
@@ -1120,8 +1157,11 @@ if TabControl.Tabs[TabControl.TabIndex] = 'Favorite' then
  end else
 begin
  DosMainList.Items.Clear;
- ListConfig.ReadSection(TabControl.Tabs[TabControl.TabIndex],FindList);
- FindListIndex(FindEdit.Text, DosMainList, FindList);
+ if ComboBox1.Items[ComboBox1.ItemIndex] = 'All games' then
+  begin
+   ListConfig.ReadSection(TabControl.Tabs[TabControl.TabIndex],FindList);
+   FindListIndex(FindEdit.Text, DosMainList, FindList);
+  end else FindListIndex(FindEdit.Text, DosMainList, DosList);
 end;
 
 MainForm.Caption := SetCaption;
@@ -1337,6 +1377,59 @@ end;
 
 ///////////////////////////////////////////////////////////////////////////////
 
+procedure TMainForm.ComboBox1Change(Sender: TObject);
+var
+  i: Integer;
+  List1, List2: TStringList;
+begin
+if TabControl.Tabs[TabControl.TabIndex] <> 'Favorite' then
+if ComboBox1.Items[ComboBox1.ItemIndex] = 'All games' then
+   ListConfig.ReadSection(TabControl.Tabs[TabControl.TabIndex],DosMainList.Items) else
+ begin
+  List1 := TStringList.Create;
+  List2 := TStringList.Create;
+   try
+    List1.LoadFromFile(GetExecDir + FConfig.ReadString(TabControl.Tabs[TabControl.TabIndex],ComboBox1.Items[ComboBox1.ItemIndex],''));
+    FindListIndex2('<GameFileName>', List2, List1);
+    for i := 0 to List2.Count-1 do
+     List2[I] := StrCut(List2[i],List2[i],'<GameFileName>','</GameFileName>');
+     FindList.Assign(List2);
+     DosMainList.Items.Assign(List2);
+     DosList.Assign(List2);
+    finally
+     List1.Free;
+     List2.Free;
+   end;
+ end;
+ActiveControl := DosMainList;
+FindEdit.Text := '';
+DosMainListClick(Sender);
+if DosMainList.Items.Count = -1 then
+   DosMainList.Selected[-1] := False else DosMainList.Selected[0] := True;
+end;
+
+procedure TMainForm.ComboBox1DrawItem(Control: TWinControl; Index: Integer;
+  Rect: TRect; State: TOwnerDrawState);
+begin
+if FConfig.ReadBool('General','isStyled',True) = True then
+with (Control as TComboBox).Canvas do
+  begin
+    if odSelected in State then
+    begin
+      Brush.Color := $00AAAA00;
+      Font.Color := clBlack;
+    end;
+
+    FillRect(Rect);
+    TextOut(Rect.Left+4, Rect.Top, (Control as TComboBox).Items[Index]);
+    if odFocused In State then
+     begin
+      Brush.Color := (Control as TComboBox).Color;
+      DrawFocusRect(Rect);
+     end;
+  end;
+end;
+
 procedure TMainForm.TabControlChange(Sender: TObject);
 var
   I: Integer;
@@ -1360,6 +1453,8 @@ begin
    GetNotesMemo := Utf8ToString(GetNotesList(GetExecDir+FConfig.ReadString('xml',TabControl.Tabs[TabControl.TabIndex],'')));
   end;
 end;
+//load playlists
+LoadPlaylists(ComboBox1);
 //info
 ActiveControl := DosMainList;
 if DosMainList.Items.Count <> -1 then
@@ -1373,6 +1468,9 @@ SysLabel.Caption := MainForm.Caption;
 cmdlabel.Caption := 'c:\eXo\'+TabControl.Tabs[TabControl.TabIndex] + '>find ';
 FindEdit.Text := '';
 FindEdit.Enabled := True;
+//change findedit.top
+if FConfig.ReadBool('General','isStyled',True) = True then
+FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth -cmdlabel.Width-12, 18) else
 FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -22, ClientWidth -cmdlabel.Width-12, 18);
 DosMainListClick(Sender);
 end;

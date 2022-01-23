@@ -85,7 +85,7 @@ object MainForm: TMainForm
         TabVisible = False
         object VideoSplitter: TSplitter
           Left = 0
-          Top = 269
+          Top = 290
           Width = 440
           Height = 3
           Cursor = crVSplit
@@ -98,7 +98,7 @@ object MainForm: TMainForm
         object NotesBox: TMemo
           AlignWithMargins = True
           Left = 2
-          Top = 2
+          Top = 23
           Width = 436
           Height = 265
           Margins.Left = 2
@@ -118,9 +118,9 @@ object MainForm: TMainForm
         end
         object Panel1: TPanel
           Left = 0
-          Top = 272
+          Top = 293
           Width = 440
-          Height = 241
+          Height = 220
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 1
@@ -129,7 +129,7 @@ object MainForm: TMainForm
             Left = 191
             Top = 6
             Width = 243
-            Height = 229
+            Height = 208
             Margins.Left = 6
             Margins.Top = 6
             Margins.Right = 6
@@ -147,7 +147,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 185
-            Height = 241
+            Height = 220
             ActivePage = CoverSheet
             Align = alLeft
             Style = tsFlatButtons
@@ -159,7 +159,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 177
-                Height = 231
+                Height = 210
                 Align = alClient
                 BevelOuter = bvNone
                 TabOrder = 0
@@ -174,7 +174,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 177
-                Height = 231
+                Height = 210
                 Align = alClient
                 Center = True
                 Stretch = True
@@ -185,6 +185,25 @@ object MainForm: TMainForm
               end
             end
           end
+        end
+        object ComboBox1: TComboBox
+          Left = 0
+          Top = 0
+          Width = 440
+          Height = 21
+          Align = alTop
+          BevelEdges = []
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          Style = csDropDownList
+          Ctl3D = True
+          DropDownCount = 16
+          ExtendedUI = True
+          ParentCtl3D = False
+          TabOrder = 2
+          StyleElements = []
+          OnChange = ComboBox1Change
+          OnDrawItem = ComboBox1DrawItem
         end
       end
     end
