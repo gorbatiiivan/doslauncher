@@ -1,6 +1,6 @@
-# doslauncher
+# µlauncher (old name "doslauncher")
 
-doslauncher is a small, portable with a minimal GUI launcher for eXo collections(eXoDOS V5,eXoWin3x,eXoScummVM)
+µlauncher is a small, portable with a minimal GUI launcher for eXo collections(eXoDOS V5,eXoWin3x V2)
 
 
 
@@ -17,7 +17,7 @@ Hard disk drive (HDD) - 10 MB.
 ![ап](https://user-images.githubusercontent.com/84850541/146141661-9b5dfb1a-cbbc-41ce-914e-c6d50072de8b.PNG)
 
 
-1. Run doslauncher_x32.exe or doslauncher_x64.exe
+1. Run µlauncher_x32.exe or µlauncher_x64.exe
 2. Select main directory and press Extract button. 
 4. Run and play, enjoy :).
 
