@@ -21,10 +21,6 @@ Hard disk drive (HDD) - 10 MB.
 2. Select main directory and press Extract button. 
 4. Run and play, enjoy :).
 
-Simple:
-
-![03](https://user-images.githubusercontent.com/84850541/148533267-6a8153f7-ab9a-4d18-8bb7-d13f05fd3111.PNG)
-
 
 Extended:
 
