@@ -17,7 +17,7 @@ Hard disk drive (HDD) - 10 MB.
 ![ап](https://user-images.githubusercontent.com/84850541/146141661-9b5dfb1a-cbbc-41ce-914e-c6d50072de8b.PNG)
 
 
-1. Run µlauncher_x32.exe or µlauncher_x64.exe
+1. Run setup_x32.exe or setup_x64.exe
 2. Select main directory and press Extract button. 
 4. Run and play, enjoy :).
 
