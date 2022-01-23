@@ -8,7 +8,7 @@
 
 Operating system (OS) - Windows Vista +.
 
-System memory (RAM) - 256 MB (extended mode); 32 MB (simple mode).
+System memory (RAM) - 256 MB.
 
 Hard disk drive (HDD) - 10 MB.
 
