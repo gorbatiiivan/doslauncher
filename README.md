@@ -22,19 +22,18 @@ Hard disk drive (HDD) - 10 MB.
 4. Run and play, enjoy :).
 
 
-Extended:
+![01](https://user-images.githubusercontent.com/84850541/150687142-32c91301-2c3a-444c-a7c1-f46a33e92f87.PNG)
 
-![01](https://user-images.githubusercontent.com/84850541/148533300-57911242-7148-4ba2-a83e-158b30e572f4.PNG)
+![02](https://user-images.githubusercontent.com/84850541/150687151-6bc05c61-70db-4859-815c-468b9fd14494.PNG)
 
-![02](https://user-images.githubusercontent.com/84850541/148533204-48ab7667-eec8-48f3-b507-d316d6a0466b.PNG)
-
-![05](https://user-images.githubusercontent.com/84850541/148533215-d78ca464-2f48-4cc4-89a9-6f3f625e128c.PNG)
+![03](https://user-images.githubusercontent.com/84850541/150687153-17eda32d-e08c-4f85-b9ee-422096639dde.PNG)
 
 
 
 FullScreen:
 
-![06](https://user-images.githubusercontent.com/84850541/148533084-b2ca09dd-ba72-4ba5-8ca8-fe6ce3076124.PNG)
+![04](https://user-images.githubusercontent.com/84850541/150687137-cf4014fb-d438-47a2-8c1e-14d149dbd057.PNG)
+
 
 
 
