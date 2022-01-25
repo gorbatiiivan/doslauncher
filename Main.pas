@@ -605,8 +605,11 @@ if isFullScreen = True then
   ShowWindow(Handle, SW_SHOWMAXIMIZED);
  end else
  begin
-  ShowWindow(Handle, SW_RESTORE);
-  ShowWindow(Handle, SW_SHOW);
+  if not ShowWindow(Handle, SW_SHOW) then
+  begin
+   ShowWindow(Handle, SW_RESTORE);
+   ShowWindow(Handle, SW_SHOW);
+  end else SetForegroundWindow(Handle);
  end;
 SysPanel.Visible := isFullScreen;
 SysLabel.Visible := isFullScreen;
@@ -785,7 +788,7 @@ FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -20, ClientWidth
 FindEdit.SetBounds(cmdlabel.Left + cmdlabel.Width, ClientHeight -22, ClientWidth -cmdlabel.Width-12, 18);
 if isFullScreen = True then
  begin
-  SysPanel.SetBounds(354,1,MainPanel.Width - 356, SysPanel.Height);
+  SysPanel.SetBounds(PageControl2.Left,1,PageControl2.Width, SysPanel.Height);
   CloseButton.Left := SysPanel.Width - 24;
   MinButton.Left := SysPanel.Width - 50;
   SysLabel.SetBounds(2,0, SysPanel.Width-100, SysLabel.Height);
@@ -1215,6 +1218,13 @@ end;
 procedure TMainForm.MainSplitterMoved(Sender: TObject);
 begin
 PageControl3.Width := NotesBox.Width div 2;
+if isFullScreen = True then
+ begin
+  SysPanel.SetBounds(PageControl2.Left,1,PageControl2.Width, SysPanel.Height);
+  CloseButton.Left := SysPanel.Width - 24;
+  MinButton.Left := SysPanel.Width - 50;
+  SysLabel.SetBounds(2,0, SysPanel.Width-100, SysLabel.Height);
+ end;
 end;
 
 procedure TMainForm.MinButtonClick(Sender: TObject);
@@ -1298,7 +1308,8 @@ if isFullScreen = False then
    FConfig.WriteInteger('General','Height',Height);
   end;
   MainForm.BorderStyle := bsNone;
-  MainForm.WindowState := wsMaximized;
+  ShowWindow(Handle, SW_RESTORE);
+  ShowWindow(Handle, SW_SHOWMAXIMIZED);
   SysPanel.Visible := True;
   SysLabel.Visible := True;
   if PageControl2.Visible = True then
@@ -1313,8 +1324,16 @@ if isFullScreen = False then
  begin
   isFullScreen := False;
   MainForm.BorderStyle := bsSizeable;
-  if FConfig.ReadInteger('General','WindowState', 0) = 0 then WindowState := wsNormal else
-  if FConfig.ReadInteger('General','WindowState', 0) = 1 then WindowState := wsMaximized;
+  if FConfig.ReadInteger('General','WindowState', 0) = 0 then
+   begin
+    ShowWindow(Handle, SW_RESTORE);
+    ShowWindow(Handle, SW_NORMAL);
+   end else
+  if FConfig.ReadInteger('General','WindowState', 0) = 1 then
+   begin
+    ShowWindow(Handle, SW_RESTORE);
+    ShowWindow(Handle, SW_SHOWMAXIMIZED);
+   end;
   SysPanel.Visible := False;
   SysLabel.Visible := False;
   if WindowState = wsNormal then
@@ -1392,7 +1411,7 @@ if ComboBox1.Items[ComboBox1.ItemIndex] = 'All games' then
     List1.LoadFromFile(GetExecDir + FConfig.ReadString(TabControl.Tabs[TabControl.TabIndex],ComboBox1.Items[ComboBox1.ItemIndex],''));
     FindListIndex2('<GameFileName>', List2, List1);
     for i := 0 to List2.Count-1 do
-     List2[I] := StrCut(List2[i],List2[i],'<GameFileName>','</GameFileName>');
+     List2[I] := ChangeFileExt(StrCut(List2[i],List2[i],'<GameFileName>','</GameFileName>'),'');
      FindList.Assign(List2);
      DosMainList.Items.Assign(List2);
      DosList.Assign(List2);
