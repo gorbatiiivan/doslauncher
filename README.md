@@ -36,6 +36,17 @@ FullScreen:
 
 
 
+*****************************   Images support   *******************************
+To add images to µlauncher:
+1. Run LaunchBox.
+2. Select from menu: Export to Android.
+3. Export all Collection.
+4. Select MS-DOS and Windows3x
+5. Select Game Title and Gameplay Screensots and press Next.
+6. When is ready copy only xml files from "\Metadata\Temp\Android Export\LaunchBox\Data\Platforms\" to µlauncher folder.
+7. Run µlauncher.
+
+
 
 If you find a bug or want to improve the program, please write to this e-mail : gorbatiiivan@gmail.com
 
