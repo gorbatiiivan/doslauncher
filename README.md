@@ -36,7 +36,9 @@ FullScreen:
 
 
 
+
 *****************************   Images support   *******************************
+
 To add images to µlauncher:
 1. Run LaunchBox.
 2. Select from menu: Export to Android.
