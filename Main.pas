@@ -7,7 +7,7 @@ uses
   Vcl.Themes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls,
   IniFiles, Vcl.ComCtrls, IOUtils, Types, Vcl.ExtCtrls, Vcl.Buttons,
   System.Actions, Vcl.ActnList, System.ImageList, Vcl.ImgList, StrUtils,
-  Jpeg, PngImage, GIFImg;
+  Jpeg, PngImage, GIFImg, Vcl.TitleBarCtrls;
 
 type
   TMainForm = class(TForm)
@@ -70,7 +70,7 @@ type
     Createdesktoptabshortcut1: TMenuItem;
     Desktopshortcut1: TMenuItem;
     N14: TMenuItem;
-    Enabledstyle1: TMenuItem;
+    Style1: TMenuItem;
     N15: TMenuItem;
     Showpriority1: TMenuItem;
     Images1: TMenuItem;
@@ -87,6 +87,9 @@ type
     N6: TMenuItem;
     Scangamesinthistab1: TMenuItem;
     ComboBox1: TComboBox;
+    Classic1: TMenuItem;
+    Blue1: TMenuItem;
+    Dark1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure DosMainListMouseDown(Sender: TObject; Button: TMouseButton;
@@ -132,7 +135,6 @@ type
     procedure Addtofavorit1Click(Sender: TObject);
     procedure Selectedgame1Click(Sender: TObject);
     procedure Createdesktoptabshortcut1Click(Sender: TObject);
-    procedure Enabledstyle1Click(Sender: TObject);
     procedure AManualViewExecute(Sender: TObject);
     procedure MainSplitterMoved(Sender: TObject);
     procedure Images1Click(Sender: TObject);
@@ -142,6 +144,7 @@ type
     procedure ComboBox1Change(Sender: TObject);
     procedure ComboBox1DrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
+    procedure Classic1Click(Sender: TObject);
   private
     { Private declarations }
     IsArrowDown: Boolean;
@@ -175,11 +178,10 @@ var
   AppHandle: HWND;
   isFullScreen: Boolean = False;
   GetNotesMemo: String = '';
-  isStyled: Boolean = True;
   TempPicture: TPicture;
   ImageForIni1, ImageForIni2: String;
   Priority: Integer = 1;
-
+  MStyle: Integer =0;
 
 implementation
 
@@ -329,6 +331,7 @@ with MainForm do
            TempPicture.WICImage.LoadFromFile(GetExecDir+FavConfig.ReadString('ImageTitle',DosMainList.Items[DosMainList.ItemIndex],''));
            Image2.Picture := TempPicture;
           end;
+         ManualXml := GetExecDir+FavConfig.ReadString('Manual',DosMainList.Items[DosMainList.ItemIndex],'');
         end;
       end;
     end else PageControl2.ActivePageIndex := -1;
@@ -371,7 +374,7 @@ with MainForm do
       end;
     end else PageControl2.ActivePageIndex := -1;
 
-  if ManualXml = '' then Manual1.Enabled := False else Manual1.Enabled := True;
+  if not FileExists(ManualXml) then Manual1.Enabled := False else Manual1.Enabled := True;
   MainForm.Caption := SetCaption;
   TrayIcon.Hint := MainForm.Caption;
   SysLabel.Caption := MainForm.Caption;
@@ -430,7 +433,7 @@ function TMainForm.GetListConfig: TMemIniFile;
 begin
   SetCurrentDir(ExtractFilePath(Application.ExeName));
   if ListConfig = nil then
-  ListConfig := TMemIniFile.Create(ExtractFilePath(Application.ExeName)+'list.ini',TEncoding.UTF8);
+  ListConfig := TMemIniFile.Create(ExtractFilePath(Application.ExeName)+'gamelist.ini',TEncoding.UTF8);
   Result := ListConfig;
 end;
 
@@ -496,9 +499,9 @@ if FirstRun = True then
    FConfig.WriteInteger('General','VideoSplitterPosFull',485);
    FConfig.WriteInteger('General','SplitterPosNormal',506);
    FConfig.WriteInteger('General','VideoSplitterPosNormal',369);
+   FConfig.WriteInteger('General', 'Style',0);
    FConfig.WriteFloat('General','Volume',1);
    FConfig.WriteBool('General','FullScreen',False);
-   FConfig.WriteBool('General','isStyled',True);
    FConfig.UpdateFile;
   end;
  end;
@@ -520,7 +523,6 @@ if Write = true then
   if WindowState = wsMaximized then
   FConfig.WriteInteger('General','WindowState', 1);
   FConfig.WriteInteger('General','OnTray',OnTray);
-  FConfig.WriteBool('General','isStyled',isStyled);
   FConfig.WriteInteger('General','Priority',Priority);
   if PageControl2.Visible = True then
   begin
@@ -537,10 +539,12 @@ if Write = true then
   FConfig.UpdateFile;
  end else
  begin
-  if FConfig.ReadBool('General','isStyled',True) = True then
-  TStyleManager.TrySetStyle('Windows10 Blue', False)
-  else
-  TStyleManager.TrySetStyle('Windows', False);
+  MStyle := FConfig.ReadInteger('General','Style',0);
+  case MStyle of
+   0: TStyleManager.TrySetStyle('Windows', False);
+   1: TStyleManager.TrySetStyle('Windows10 Blue', False);
+   2: TStyleManager.TrySetStyle('Windows10 Dark', False);
+  end;
 
   FullScreenonstartup1.Checked := FConfig.ReadBool('General','FullScreen',False);
   if FullScreenonstartup1.Checked = False then
@@ -564,7 +568,6 @@ if Write = true then
   end;
   OnTray := FConfig.ReadInteger('General','OnTray',0);
   TrayAction(OnTray);
-  isStyled := FConfig.ReadBool('General','isStyled',True);
   Priority := FConfig.ReadInteger('General','Priority',0);
   if isFullScreen = True then
    begin
@@ -632,7 +635,26 @@ RegIni(False, False);
 GetFavConfig;
 GetListConfig;
 
-if FConfig.ReadBool('General','isStyled',True) = True then
+case MStyle of
+0:
+begin
+ MainForm.Caption := 'Welcome to µlauncher, please select your favorite tab';
+ TabControl.TabIndex := -1;
+ TabControl.Enabled := True;
+ cmdlabel.Caption := 'c:\eXo>find ';
+ FindEdit.BorderStyle := bsSingle;
+ FindEdit.Enabled := False;
+ DosMainList.BorderStyle := bsSingle;
+ DosMainList.Style := lbStandard;
+ DosMainList.Font.Size := 10;
+ ComboBox1.Style := csDropDownList;
+ ComboBox1.Font.Size := 10;
+ NotesBox.BorderStyle := bsSingle;
+ NotesBox.Font.Size := 10;
+ FindEdit.Font.Size := 10;
+ SysLabel.Font.Size := 10;
+end;
+1:
 begin
 if LoadResourceFontByID(1, 'MYFONT') then
  begin
@@ -692,23 +714,68 @@ if LoadResourceFontByID(1, 'MYFONT') then
    TabControl.TabIndex := -1;
    TabControl.Enabled := True;
  end;
-end else
+end;
+2:
 begin
- MainForm.Caption := 'Welcome to µlauncher, please select your favorite tab';
- TabControl.TabIndex := -1;
- TabControl.Enabled := True;
- cmdlabel.Caption := 'c:\eXo>find ';
- FindEdit.BorderStyle := bsSingle;
- FindEdit.Enabled := False;
- DosMainList.BorderStyle := bsSingle;
- DosMainList.Style := lbStandard;
- DosMainList.Font.Size := 10;
- ComboBox1.Style := csDropDownList;
- ComboBox1.Font.Size := 10;
- NotesBox.BorderStyle := bsSingle;
- NotesBox.Font.Size := 10;
- FindEdit.Font.Size := 10;
- SysLabel.Font.Size := 10;
+if LoadResourceFontByID(1, 'MYFONT') then
+ begin
+   MainForm.ParentFont := False;
+   MainForm.Font.Size := 8;
+   MainForm.Font.Name := 'Modern DOS 8x16';
+   MainForm.Caption := 'Welcome to µlauncher, please select your favorite tab';
+
+   SysLabel.ParentFont := False;
+   SysLabel.Font.Size := 12;
+   SysLabel.Font.Name := 'Modern DOS 8x16';
+   SysLabel.Font.Color := $00AAAAAA;
+
+   cmdlabel.ParentFont := False;
+   cmdlabel.Font.Size := 12;
+   cmdlabel.Font.Name := 'Modern DOS 8x16';
+   cmdlabel.Font.Color := $00AAAAAA;
+   cmdlabel.Color := clWhite;
+   cmdlabel.Caption := 'c:\eXo>find ';
+
+   NotesBox.ParentFont := False;
+   NotesBox.Font.Size := 12;
+   NotesBox.Font.Name := 'Modern DOS 8x16';
+   NotesBox.Font.Color := $00AAAAAA;
+   NotesBox.Color := clBlack;
+   NotesBox.BorderStyle := bsNone;
+
+   FindEdit.ParentFont := False;
+   FindEdit.Font.Size := 12;
+   FindEdit.Font.Name := 'Modern DOS 8x16';
+   FindEdit.ParentColor := True;
+   FindEdit.Color := clBlack;
+   FindEdit.Font.Color := $00AAAAAA;
+   FindEdit.BorderStyle := bsNone;
+   FindEdit.Enabled := False;
+
+   DosMainList.BorderStyle := bsNone;
+   DosMainList.ParentFont := False;
+   DosMainList.Font.Size := 12;
+   DosMainList.Font.Name := 'Modern DOS 8x16';
+   DosMainList.ParentColor := True;
+   DosMainList.Color := clBlack;
+   DosMainList.Font.Color := $00AAAAAA;
+   DosMainList.Style := lbOwnerDrawFixed;
+
+   ComboBox1.ParentFont := False;
+   ComboBox1.Font.Size := 12;
+   ComboBox1.Font.Name := 'Modern DOS 8x16';
+   ComboBox1.ParentColor := True;
+   ComboBox1.Color := clBlack;
+   ComboBox1.Font.Color := $00AAAAAA;
+   ComboBox1.Style := csOwnerDrawFixed;
+
+   TabControl.ParentFont := False;
+   TabControl.Font.Size := 12;
+   TabControl.Font.Name := 'Modern DOS 8x16';
+   TabControl.TabIndex := -1;
+   TabControl.Enabled := True;
+ end;
+end;
 end;
 ActiveControl := nil;
 PageControl2.ActivePage := nil;
@@ -755,23 +822,32 @@ procedure TMainForm.FormPaint(Sender: TObject);
 begin
 if FConfig.ReadBool('General','isStyled',True) = True then
  begin
-  Color := $00AA0000;
-  Canvas.Pen.Color := $00AA0000;
-  Canvas.Pen.Style := psSolid;
-  Canvas.Pen.Width := 1;
-  Canvas.Rectangle (0, 0, ClientWidth, ClientHeight);
-  Canvas.Pen.Color := $00FFFF55;
-  Canvas.Pen.Style := psSolid;
-  Canvas.Pen.Width := 1;
-  Canvas.Rectangle (4, 4, ClientWidth -4, ClientHeight -28);
-  Canvas.Pen.Color := $00FFFF55;
-  Canvas.Pen.Style := psSolid;
-  Canvas.Pen.Width := 1;
-  Canvas.Rectangle (6, 6, ClientWidth -6, ClientHeight -30);
-  Canvas.Pen.Color := clBlack;
-  Canvas.Pen.Style := psSolid;
-  Canvas.Pen.Width := 24;
-  Canvas.Rectangle (0, ClientHeight -16, ClientWidth, ClientHeight);
+ case MStyle of
+ 1:
+  begin
+   Color := $00AA0000;
+   Canvas.Pen.Color := $00AA0000;
+   Canvas.Pen.Style := psSolid;
+   Canvas.Pen.Width := 1;
+   Canvas.Rectangle (0, 0, ClientWidth, ClientHeight);
+   Canvas.Pen.Color := $00FFFF55;
+   Canvas.Pen.Style := psSolid;
+   Canvas.Pen.Width := 1;
+   Canvas.Rectangle (4, 4, ClientWidth -4, ClientHeight -28);
+   Canvas.Pen.Color := $00FFFF55;
+   Canvas.Pen.Style := psSolid;
+   Canvas.Pen.Width := 1;
+   Canvas.Rectangle (6, 6, ClientWidth -6, ClientHeight -30);
+   Canvas.Pen.Color := clBlack;
+   Canvas.Pen.Style := psSolid;
+   Canvas.Pen.Width := 24;
+   Canvas.Rectangle (0, ClientHeight -16, ClientWidth, ClientHeight);
+  end;
+ 2:
+  begin
+   Color := clBlack;
+  end;
+ end;
  end;
 
 //MFVideo
@@ -805,7 +881,7 @@ var
 begin
 Showpriority1.Items[Priority].Checked := True;
 
-Enabledstyle1.Checked := FConfig.ReadBool('General','isStyled',True);
+Style1.Items[MStyle].Checked := True;
 
 if TabControl.TabIndex <> -1 then
 if DosMainList.ItemIndex <> -1 then
@@ -830,6 +906,7 @@ begin
 with ScreenImageForm do
  begin
   Image1.Picture.WICImage := (Sender as TImage).Picture.WICImage;
+  if (Sender as TImage).Picture.WICImage.Empty <> True then
   Show;
  end;
 end;
@@ -865,12 +942,6 @@ if DosMainList.ItemIndex <> -1 then
  end;
 end;
 
-procedure TMainForm.Enabledstyle1Click(Sender: TObject);
-begin
-isStyled := not isStyled;
-ShowMessage('Need to restart application!');
-end;
-
 procedure TMainForm.Exit1Click(Sender: TObject);
 begin
 AClose := False;
@@ -897,6 +968,13 @@ end;
 procedure TMainForm.Minimize1Click(Sender: TObject);
 begin
 TrayAction(1);
+end;
+
+procedure TMainForm.Classic1Click(Sender: TObject);
+begin
+ShowMessage('Need to restart application!');
+FConfig.WriteInteger('General', 'Style',(Sender as TMenuItem).MenuIndex);
+FConfig.UpdateFile;
 end;
 
 procedure TMainForm.Close1Click(Sender: TObject);
@@ -1086,6 +1164,7 @@ if (Sender as TListBox).ItemIndex <> -1 then
   CheckforUpdate1.Enabled := ExistsGameDir(FConfig.ReadString('Tabs','DOS',''));
   FullScreen1.Checked := isFullScreen;
   DosMainListClick(Sender);
+  Manual1.Enabled := False;
   ListMenu.Popup(Mouse.CursorPos.X,Mouse.CursorPos.Y);
  end;
 end;
@@ -1096,11 +1175,15 @@ begin
 if IsArrowDown then
   begin
     TimerOnClick.Enabled := False;
-    TimerOnClick.Interval := 500;
+    //if priority of image then interval is min
+    if FConfig.ReadInteger('General','Priority',0) = 0 then
+    TimerOnClick.Interval := 125 else TimerOnClick.Interval := 500;
     TimerOnClick.Enabled := True;
   end else
   begin
     TimerOnClick.Enabled := False;
+    if FConfig.ReadInteger('General','Priority',0) = 0 then
+    TimerOnClick.Interval := GetDoubleClickTime() + 62 else
     TimerOnClick.Interval := GetDoubleClickTime() + 250;
     TimerOnClick.Enabled := True;
   end;
@@ -1115,13 +1198,20 @@ end;
 procedure TMainForm.DosMainListDrawItem(Control: TWinControl; Index: Integer;
   Rect: TRect; State: TOwnerDrawState);
 begin
-if FConfig.ReadBool('General','isStyled',True) = True then
 with (Control as TListBox).Canvas do
   begin
     if odSelected in State then
     begin
-      Brush.Color := $00AAAA00;
-      Font.Color := clBlack;
+     case FConfig.ReadInteger('General','Style',0) of
+     1: begin
+         Brush.Color := $00AAAA00;
+         Font.Color := clBlack;
+        end;
+     2: begin
+         Brush.Color := $0028241A;
+         Font.Color := clWhite;
+        end;
+     end;
     end;
 
     FillRect(Rect);
@@ -1430,13 +1520,20 @@ end;
 procedure TMainForm.ComboBox1DrawItem(Control: TWinControl; Index: Integer;
   Rect: TRect; State: TOwnerDrawState);
 begin
-if FConfig.ReadBool('General','isStyled',True) = True then
 with (Control as TComboBox).Canvas do
   begin
     if odSelected in State then
     begin
-      Brush.Color := $00AAAA00;
-      Font.Color := clBlack;
+     case FConfig.ReadInteger('General','Style',0) of
+     1: begin
+         Brush.Color := $00AAAA00;
+         Font.Color := clBlack;
+        end;
+     2: begin
+         Brush.Color := $0028241A;
+         Font.Color := clWhite;
+        end;
+     end;
     end;
 
     FillRect(Rect);
@@ -1469,6 +1566,7 @@ begin
   begin
    DosMainList.Items.Clear;
    ListConfig.ReadSection(TabControl.Tabs[TabControl.TabIndex],DosMainList.Items);
+   //load notes
    GetNotesMemo := Utf8ToString(GetNotesList(GetExecDir+FConfig.ReadString('xml',TabControl.Tabs[TabControl.TabIndex],'')));
   end;
 end;

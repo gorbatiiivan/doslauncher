@@ -11,6 +11,7 @@ object MainForm: TMainForm
   Font.Style = []
   ShowHint = True
   SnapBuffer = 4
+  StyleElements = [seFont, seClient]
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -196,10 +197,8 @@ object MainForm: TMainForm
           BevelInner = bvNone
           BevelOuter = bvNone
           Style = csDropDownList
-          Ctl3D = True
           DropDownCount = 16
           ExtendedUI = True
-          ParentCtl3D = False
           TabOrder = 2
           StyleElements = []
           OnChange = ComboBox1Change
@@ -377,9 +376,26 @@ object MainForm: TMainForm
       object N11: TMenuItem
         Caption = '-'
       end
-      object Enabledstyle1: TMenuItem
-        Caption = 'Enabled style'
-        OnClick = Enabledstyle1Click
+      object Style1: TMenuItem
+        Caption = 'Style'
+        object Classic1: TMenuItem
+          AutoCheck = True
+          Caption = 'Classic'
+          RadioItem = True
+          OnClick = Classic1Click
+        end
+        object Blue1: TMenuItem
+          AutoCheck = True
+          Caption = 'Blue'
+          RadioItem = True
+          OnClick = Classic1Click
+        end
+        object Dark1: TMenuItem
+          AutoCheck = True
+          Caption = 'Dark'
+          RadioItem = True
+          OnClick = Classic1Click
+        end
       end
       object N15: TMenuItem
         Caption = '-'

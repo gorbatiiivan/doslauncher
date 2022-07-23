@@ -10,7 +10,7 @@ type
   TScreenImageForm = class(TForm)
     Image1: TImage;
     procedure Image1Click(Sender: TObject);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
   public
@@ -26,8 +26,13 @@ implementation
 
 uses Main;
 
-procedure TScreenImageForm.FormKeyPress(Sender: TObject; var Key: Char);
+procedure TScreenImageForm.FormKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
+if (Key=VK_LEFT) then
+Image1.Picture.WICImage := MainForm.Image1.Picture.WICImage else
+if (Key=VK_RIGHT) then
+Image1.Picture.WICImage := MainForm.Image2.Picture.WICImage else
 Close;
 end;
 

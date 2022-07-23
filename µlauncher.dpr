@@ -9,7 +9,8 @@ uses
   Main in 'Main.pas' {MainForm},
   ScreenImageUnit in 'ScreenImageUnit.pas' {ScreenImageForm},
   utils in 'utils.pas',
-  mf in 'mf.pas';
+  mf in 'mf.pas',
+  Vcl.Themes;
 
 {$R *.res}
 {$SETPEFLAGS IMAGE_FILE_RELOCS_STRIPPED}

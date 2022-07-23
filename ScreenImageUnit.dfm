@@ -5,7 +5,7 @@ object ScreenImageForm: TScreenImageForm
   BorderStyle = bsNone
   ClientHeight = 480
   ClientWidth = 640
-  Color = clBtnFace
+  Color = clBlack
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
@@ -13,7 +13,7 @@ object ScreenImageForm: TScreenImageForm
   Font.Style = []
   KeyPreview = True
   WindowState = wsMaximized
-  OnKeyPress = FormKeyPress
+  OnKeyUp = FormKeyUp
   PixelsPerInch = 96
   TextHeight = 15
   object Image1: TImage
