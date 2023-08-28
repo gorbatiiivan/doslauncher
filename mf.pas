@@ -7,6 +7,7 @@ uses
   System.SysUtils,
   Vcl.Graphics,
   System.Classes,
+  IniFiles,
   WinApi.WinApiTypes,
   WinApi.ActiveX.ObjBase,
   WinApi.ComBaseApi,
@@ -25,14 +26,14 @@ type
   procedure OnMediaItemCreated(pEvent: PMFP_MEDIAITEM_CREATED_EVENT);
   procedure OnMediaItemSet(pEvent: PMFP_MEDIAITEM_SET_EVENT);
   function PlayMediaFile(const hApp: HWND; const sURL: LPCWSTR): HResult;
-  function MFPlay(MFHandle: THandle; FilePath: String): Boolean;
+  function MFPlay(MFHandle: THandle; FilePath: String; Config: TMemIniFile): Boolean;
   procedure MFStop;
   procedure MFPause;
   function MFIfStoping: Boolean;
   procedure MFSetVolume(GetVolume: Float);
   procedure MFMute;
-  procedure MFVolumeUP;
-  procedure MFVolumeDOWN;
+  procedure MFVolumeUP(Config: TMemIniFile);
+  procedure MFVolumeDOWN(Config: TMemIniFile);
   procedure MFPaint(MFHandle: THandle);
   procedure MFWMSize(MFHandle: THandle);
   procedure MFDestroy;
@@ -126,7 +127,7 @@ done:
   Result := hr;
 end;
 
-function MFPlay(MFHandle: THandle; FilePath: String): Boolean;
+function MFPlay(MFHandle: THandle; FilePath: String; Config: TMemIniFile): Boolean;
 var
   hr: HResult;
   pwszFilePath: PWideChar;
@@ -135,7 +136,7 @@ begin
   hr := S_OK;
   pwszFilePath := PWideChar(FilePath);
   hr := PlayMediaFile(MFHandle, pwszFilePath);
-  hr := g_pPlayer.SetVolume(MainForm.FConfig.ReadFloat('General','Volume',1));
+  hr := g_pPlayer.SetVolume(Config.ReadFloat('General','Volume',1));
   if Failed(hr) then Exit else
   Result := True;
 end;
@@ -220,7 +221,7 @@ if Assigned(g_pPlayer) then
   end;
 end;
 
-procedure MFVolumeUP;
+procedure MFVolumeUP(Config: TMemIniFile);
 var
   hr: HResult;
   state: MFP_MEDIAPLAYER_STATE;
@@ -237,14 +238,14 @@ if Assigned(g_pPlayer) then
         CurVolume := CurVolume + 0.1;
         if CurVolume > 1 then CurVolume := 1;
         hr := g_pPlayer.SetVolume(CurVolume);
-        MainForm.FConfig.WriteFloat('General','Volume',CurVolume);
+        Config.WriteFloat('General','Volume',CurVolume);
        end;
     end;
  end;
 if Failed(hr) then Exit;
 end;
 
-procedure MFVolumeDOWN;
+procedure MFVolumeDOWN(Config: TMemIniFile);
 var
   hr: HResult;
   state: MFP_MEDIAPLAYER_STATE;
@@ -261,7 +262,7 @@ if Assigned(g_pPlayer) then
         CurVolume := CurVolume - 0.1;
         if CurVolume < 0 then CurVolume := 0;
         hr := g_pPlayer.SetVolume(CurVolume);
-        MainForm.FConfig.WriteFloat('General','Volume',CurVolume);
+        Config.WriteFloat('General','Volume',CurVolume);
        end;
     end;
  end;

@@ -8,12 +8,13 @@ uses
   Main in 'Main.pas' {MainFrm},
   Utils in 'Utils.pas',
   Xml.VerySimple in 'Xml.VerySimple.pas',
+  mf in 'mf.pas',
   FullScreenImage in 'FullScreenImage.pas' {FullScreenForm};
 
 //mf in 'mf.pas';
 
 {$R *.res}
-//{$SETPEFLAGS IMAGE_FILE_RELOCS_STRIPPED}
+{$SETPEFLAGS IMAGE_FILE_RELOCS_STRIPPED}
 
 var
   ExtendedStyle: Longint;

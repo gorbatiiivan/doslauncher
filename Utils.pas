@@ -9,15 +9,16 @@ uses Winapi.Windows, Winapi.Messages, Forms, System.SysUtils, Vcl.StdCtrls, Vcl.
 function FindFromListView(List: TListView; s: string): Integer;
 function GetExecDir: String;
 procedure AddNotes(List: TListView; Xml:TXmlVerySimple; Books:TXmlNodeList);
-procedure GetNotes(Memo: TMemo; List: TListView);
-procedure GetMultimedia(List: TListView; ScreenShotImg: TImage; TitleImg: TImage; BoxFrontImg: TImage; DISCImg: TImage);
+function GetInfo(InfoNumber: Integer; List: TListView): String;
+procedure GetInfoNotes(Notes:TMemo; List: TListView);
+function OneLine(const s: String): String;
+procedure GetMultimedia(List: TListView; BoxFrontImg: TImage; BoxBackImage: TImage);
 procedure AddGameList(Dir: String; List: TListView; XML: TXmlVerySimple; Books:TXmlNodeList);
 procedure GetFavorites(Config: TMemIniFile; List: TListView);
-procedure AddToFav(Config: TMemIniFile; GameList: TListView);
+procedure AddToFav(Config: TMemIniFile; GameList: TListView; FavGameList: TListView; PageSelect: TPageControl);
 function RunApplication(const AExecutableFile, AParameters: string; const AShowOption: Integer = SW_SHOWNORMAL): Boolean;
 function GetDesktopFolder: string;
 function CreateDesktopShellLink(const Folder, TargetName: string): Boolean;
-function GetNumItemsInGroup(List: TListView; const GroupID: integer): integer;
 
 implementation
 
@@ -50,7 +51,6 @@ begin
   for BookNode in Books do
   begin
   Item := List.Items.Insert(0);
-  Item.GroupID := 1;
 
    EntityNode := BookNode.Find('Title');
     if Assigned(EntityNode) then
@@ -95,23 +95,54 @@ begin
    EntityNode := BookNode.Find('ManualPath');
     if Assigned(EntityNode) then
       Item.SubItems.Add(EntityNode.Text);
+
+   EntityNode := BookNode.Find('ReleaseDate');
+    if Assigned(EntityNode) then
+      Item.SubItems.Add(EntityNode.Text);
   end;
   Item.Free;
 end;
 
-procedure GetNotes(Memo: TMemo; List: TListView);
+//Extract OnlyDate
+function TGetDate(Date: String): String;
+var
+ fs: TFormatSettings;
+ s: string;
+ dt: TDateTime;
 begin
-Memo.Lines.Insert(0,'Developer: '+StringReplace(List.Items[List.ItemIndex].SubItems[1],'&amp;', '&',[rfReplaceAll]));
-Memo.Lines.Insert(1,'Publisher: '+StringReplace(List.Items[List.ItemIndex].SubItems[2],'&amp;', '&',[rfReplaceAll]));
-Memo.Lines.Insert(2,'Genre: '+List.Items[List.ItemIndex].SubItems[3]);
-Memo.Lines.Insert(3,'Series: '+List.Items[List.ItemIndex].SubItems[4]);
-Memo.Lines.Insert(4,'PlayMode: '+List.Items[List.ItemIndex].SubItems[5]);
-Memo.Lines.Insert(5,'Platform: '+List.Items[List.ItemIndex].SubItems[6]);
-Memo.Lines.Insert(6,'');
-Memo.Lines.Insert(7,StringReplace(StringReplace(List.Items[List.ItemIndex].SubItems[7],'&amp;', '&',[rfReplaceAll]),'�', '''',[rfReplaceAll]));
-//Select first line
-Memo.SelStart := Memo.Perform(EM_LINEINDEX, 0, 0);
-Memo.SelLength := Length(Memo.Lines[0]);
+if Date <> '' then
+ begin
+  fs := TFormatSettings.Create;
+  fs.DateSeparator := '-';
+  fs.ShortDateFormat := 'yyyy-MM-dd';
+  fs.TimeSeparator := ':';
+  fs.ShortTimeFormat := 'hh:mm';
+  fs.LongTimeFormat := 'hh:mm:ss';
+  s := Date;
+  dt := StrToDateTime(s, fs);
+  Result := DateToStr(dt);
+ end;
+end;
+
+function GetInfo(InfoNumber: Integer; List: TListView): String;
+begin
+case InfoNumber of
+  0: Result := 'Developer: '+StringReplace(List.Items[List.ItemIndex].SubItems[1],'&amp;', '&',[rfReplaceAll]);
+  1: Result := 'Publisher: '+StringReplace(List.Items[List.ItemIndex].SubItems[2],'&amp;', '&',[rfReplaceAll]);
+  2: Result := 'Genre: '+List.Items[List.ItemIndex].SubItems[3];
+  3: Result := 'Series: '+List.Items[List.ItemIndex].SubItems[4];
+  4: Result := 'PlayMode: '+List.Items[List.ItemIndex].SubItems[5];
+  5: Result := 'Platform: '+List.Items[List.ItemIndex].SubItems[6];
+  6: Result := 'Release date: '+TGetDate(List.Items[List.ItemIndex].SubItems[10]);
+  7: Result := List.Items[List.ItemIndex].Caption;
+end;
+end;
+
+procedure GetInfoNotes(Notes:TMemo; List: TListView);
+begin
+Notes.Lines.Insert(0,StringReplace(StringReplace(List.Items[List.ItemIndex].SubItems[7],'&amp;', '&',[rfReplaceAll]),'�', '''',[rfReplaceAll]));
+Notes.SelStart := Notes.Perform(EM_LINEINDEX, 0, 0);
+Notes.SelLength := Length(Notes.Lines[0]);
 end;
 
 function OneLine(const s: String): String;
@@ -119,6 +150,12 @@ function OneLine(const s: String): String;
 begin
   if Pos(':', s) > 0 then
     Result := OneLine(StringReplace(s, ':', '_', [rfReplaceAll])) else
+  if Pos('"', s) > 0 then
+    Result := OneLine(StringReplace(s, '"', '_', [rfReplaceAll])) else
+  if Pos('(', s) > 0 then
+    Result := OneLine(StringReplace(s, '(', '_', [rfReplaceAll])) else
+  if Pos(')', s) > 0 then
+    Result := OneLine(StringReplace(s, ')', '_', [rfReplaceAll])) else
   if Pos('''', s) > 0 then
     Result := OneLine(StringReplace(s, '''', '_', [rfReplaceAll])) else
   if Pos('/', s) > 0 then
@@ -147,41 +184,40 @@ begin
     Result := s;
 end;
 
-procedure GetMultimedia(List: TListView; ScreenShotImg: TImage; TitleImg: TImage; BoxFrontImg: TImage; DISCImg: TImage);
+procedure GetMultimedia(List: TListView; BoxFrontImg: TImage; BoxBackImage: TImage);
 var
   PictName: String;
-  ScreenShootDirs, GameTitles, BoxFronts, DISCS: TStringDynArray;
-  ScreenShootPath, GameTitlePath, BoxFronPath, DISCPath: String;
+  ScreenShootDirs, GameTitles, BoxFronts, BoxBack: TStringDynArray;
+  ScreenShootPath, GameTitlePath, BoxFronPath, BoxBackPath: String;
   TempPicture: TPicture;
 begin
+VirtualImgList.Clear;
 TempPicture := TPicture.Create;
 try
- ScreenShootDirs := TDirectory.GetFiles(GetExecDir+'Images\'+List.Selected.SubItems[6]+'\Screenshot - Gameplay\', OneLine(List.Selected.Caption)+'*', TSearchOption.soAllDirectories);
+ ScreenShootDirs := TDirectory.GetFiles(GetExecDir+'Images\'+List.Selected.SubItems[6]+'\Screenshot - Gameplay\', OneLine(List.Selected.Caption)+'-'+'*', TSearchOption.soAllDirectories);
   for ScreenShootPath in ScreenShootDirs do
     begin
-     TempPicture.WICImage.LoadFromFile(ScreenShootPath);
-     ScreenShotImg.Picture := TempPicture;
+     VirtualImgList.Add(ScreenShootPath);
     end;
 
- GameTitles := TDirectory.GetFiles(GetExecDir+'Images\'+List.Selected.SubItems[6]+'\Screenshot - Game Title\', OneLine(List.Selected.Caption)+'*', TSearchOption.soAllDirectories);
+ GameTitles := TDirectory.GetFiles(GetExecDir+'Images\'+List.Selected.SubItems[6]+'\Screenshot - Game Title\', OneLine(List.Selected.Caption)+'-01'+'*', TSearchOption.soAllDirectories);
   for GameTitlePath in GameTitles do
     begin
-     TempPicture.WICImage.LoadFromFile(GameTitlePath);
-     TitleImg.Picture := TempPicture;
+     VirtualImgList.Add(GameTitlePath);
     end;
 
- BoxFronts := TDirectory.GetFiles(GetExecDir+'Images\'+List.Selected.SubItems[6]+'\Box - Front\', OneLine(List.Selected.Caption)+'*', TSearchOption.soAllDirectories);
+ BoxFronts := TDirectory.GetFiles(GetExecDir+'Images\'+List.Selected.SubItems[6]+'\Box - Front\', OneLine(List.Selected.Caption)+'-01'+'*', TSearchOption.soAllDirectories);
   for BoxFronPath in BoxFronts do
     begin
      TempPicture.WICImage.LoadFromFile(BoxFronPath);
      BoxFrontImg.Picture := TempPicture;
     end;
 
- DISCS := TDirectory.GetFiles(GetExecDir+'Images\'+List.Selected.SubItems[6]+'\Box - Back\', OneLine(List.Selected.Caption)+'*', TSearchOption.soAllDirectories);
-  for DISCPath in DISCS do
+ BoxBack := TDirectory.GetFiles(GetExecDir+'Images\'+List.Selected.SubItems[6]+'\Box - Back\', OneLine(List.Selected.Caption)+'-01'+'*', TSearchOption.soAllDirectories);
+  for BoxBackPath in BoxBack do
     begin
-     TempPicture.WICImage.LoadFromFile(DISCPath);
-     DISCImg.Picture := TempPicture;
+     TempPicture.WICImage.LoadFromFile(BoxBackPath);
+     BoxBackImage.Picture := TempPicture;
     end;
  finally
    TempPicture.Free;
@@ -218,13 +254,13 @@ var
  Item: TListItem;
  TempList: TStringList;
 begin
+ List.Clear;
  TempList := TStringList.Create;
   try
    Config.ReadSections(TempList);
    for I := 0 to TempList.Count -1 do
    begin
     Item := List.Items.Insert(I);
-    Item.GroupID := 0;
     Item.Caption := TempList[I];
     Item.SubItems.Add(Config.ReadString(TempList[I],'ApplicationPath',''));
     Item.SubItems.Add(Config.ReadString(TempList[I],'Developer',''));
@@ -236,14 +272,16 @@ begin
     Item.SubItems.Add(Config.ReadString(TempList[I],'Notes',''));
     Item.SubItems.Add(Config.ReadString(TempList[I],'ConfigurationPath',''));
     Item.SubItems.Add(Config.ReadString(TempList[I],'ManualPath',''));
+    Item.SubItems.Add(Config.ReadString(TempList[I],'ReleaseDate',''));
    end;
    List.Items.Delete(FindFromListView(List,'General'));
   finally
    TempList.Free;
   end;
+ List.SortType := stText;
 end;
 
-procedure AddToFav(Config: TMemIniFile; GameList: TListView);
+procedure AddToFav(Config: TMemIniFile; GameList: TListView; FavGameList: TListView; PageSelect: TPageControl);
 var
   Item: TListItem;
 begin
@@ -259,31 +297,22 @@ if not Config.SectionExists(GameList.Selected.Caption) then
   Config.WriteString(GameList.Selected.Caption,'Notes',GameList.Items[GameList.ItemIndex].SubItems[7]);
   Config.WriteString(GameList.Selected.Caption,'ConfigurationPath',GameList.Items[GameList.ItemIndex].SubItems[8]);
   Config.WriteString(GameList.Selected.Caption,'ManualPath',GameList.Items[GameList.ItemIndex].SubItems[9]);
+  Config.WriteString(GameList.Selected.Caption,'ReleaseDate',GameList.Items[GameList.ItemIndex].SubItems[10]);
   Config.UpdateFile;
-  //Add item to main list
-  GameList.Items.BeginUpdate;
-  Item := GameList.Items.Insert(0);
-  Item.GroupID := 0;
-  Item.Caption := GameList.Selected.Caption;
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'ApplicationPath',''));
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'Developer',''));
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'Publisher',''));
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'Genre',''));
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'Series',''));
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'PlayMode',''));
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'Platform',''));
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'Notes',''));
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'ConfigurationPath',''));
-  Item.SubItems.Add(Config.ReadString(GameList.Selected.Caption,'ManualPath',''));
-  GameList.Items.EndUpdate;
  end else
  begin
-  if GameList.Items[GameList.ItemIndex].GroupID = 0 then
+  if PageSelect.ActivePageIndex = 0 then
+   begin
+    Config.EraseSection(FavGameList.Selected.Caption);
+    Config.UpdateFile;
+    FavGameList.Items.Delete(FindFromListView(FavGameList,FavGameList.Selected.Caption));
+    FavGameList.ItemIndex := -1;
+    MainFrm.PageControl1Change(MainFrm);
+   end else
+  if PageSelect.ActivePageIndex = 1 then
    begin
     Config.EraseSection(GameList.Selected.Caption);
     Config.UpdateFile;
-    GameList.Items.Delete(FindFromListView(GameList,GameList.Selected.Caption));
-    GameList.ItemIndex := -1;
    end;
  end;
 end;
@@ -354,17 +383,6 @@ begin
   if not FileExists(LinkName) then
     if IPFile.Save(PWideChar(LinkName), False) = S_OK then
       Result := True;
-end;
-
-function GetNumItemsInGroup(List: TListView; const GroupID: integer): integer;
-var
-  i: Integer;
-begin
-  result := 0;
-  assert((GroupID >= 0) and (GroupID <= List.Groups.Count - 1));
-  for i := 0 to List.Items.Count - 1 do
-    if List.Items.Item[i].GroupID = GroupID then
-      inc(result);
 end;
 
 end.
