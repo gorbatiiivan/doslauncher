@@ -18,7 +18,7 @@ Hard disk drive (HDD) - 10 MB.
 
 
 1. Run launcher_x32.exe or launcher_x64.exe
-2. Select main directory and press Extract button. 
+2. Select main directory LaunchBox and press Extract button (Example: C:\LaunchBox\µlauncher\µlauncher.exe). 
 4. Run and play, enjoy :).
 
 
