@@ -22,7 +22,7 @@ Hard disk drive (HDD) - 10 MB.
 4. Run and play, enjoy :).
 
 
-![Снимок](https://user-images.githubusercontent.com/84850541/236662723-76f0e9ae-f5a5-4510-82d3-3d53bcfebd22.PNG)
+![Снимок](https://github.com/gorbatiiivan/doslauncher/assets/84850541/5b9eb502-d4b2-42a6-b339-e831cf75b479)
 
 
 If you find a bug or want to improve the program, please write to this e-mail : gorbatiiivan@gmail.com
